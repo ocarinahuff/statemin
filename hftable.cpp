@@ -303,7 +303,7 @@ void hftable::prime_compatibles() {
 }
 
 int hftable::class_set(const cp& p, cpset& cs) {
-    
+    //create pairs from p, scan C for conditionals or unconditionals.
 }
 /*
  * prime_compatibles(C,M){
