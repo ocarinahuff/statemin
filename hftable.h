@@ -46,6 +46,9 @@ private:
     //max comp helpers    
     void check_intersectibles(std::string i, const mc& Si);
     bool subset(const mc& s1, const mc& s2);
+    
+    //prime comp helpers
+    int class_set(const cp& p, cpset& cs);
 };
 
 #endif /* HFTABLE_H */
