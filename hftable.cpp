@@ -280,8 +280,9 @@ void hftable::max_compatibles() {
 }
 
 void hftable::prime_compatibles() {
-    set<cp> done;
+    cpset done, cs;
     done.clear();
+    cs.clear();
     int max_size = 0;
     for(auto& m : M)
         if(m.size() > max_size)
@@ -293,9 +294,16 @@ void hftable::prime_compatibles() {
         for(auto& p : P) {
             if(p.size() == k) {
                 //check if class set is empty.
+                if(class_set(p,cs)==0)
+                    continue;
+                
             }
         }
     }
+}
+
+int hftable::class_set(const cp& p, cpset& cs) {
+    
 }
 /*
  * prime_compatibles(C,M){
