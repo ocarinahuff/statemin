@@ -48,7 +48,10 @@ private:
     bool subset(const mc& s1, const mc& s2);
     
     //prime comp helpers
-    int class_set(const cp& p, cpset& cs);
+    cpset& class_set(const cp& p);
+    cpset& max_subsets(const cp& p);
+    bool subset(const cp& s1, const cp& s2);
+    bool subset(const cpset& s1, const cpset& s2);
 };
 
 #endif /* HFTABLE_H */

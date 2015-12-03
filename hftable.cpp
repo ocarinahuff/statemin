@@ -194,6 +194,30 @@ bool hftable::subset(const mc& s1, const mc& s2) {
     return done.empty();
 }
 
+bool hftable::subset(const cp& s1, const cp& s2) {
+    cp done = s2;
+    for(const auto& s : s1) {
+        for(const auto& t : s2) {
+            if(s == t) {
+                done.erase(s);
+            }
+        }
+    }
+    return done.empty();
+}
+
+bool hftable::subset(const cpset& s1, const cpset& s2) {
+    cpset done = s2;
+    for(const auto& s : s1) {
+        for(const auto& t : s2) {
+            if(subset(s,t)) {
+                done.erase(s);
+            }
+        }
+    }
+    return done.empty();
+}
+
 void hftable::check_intersectibles(string i, const mc& Si) {
     mc tmp, rem;
     bool found = false;
@@ -280,9 +304,9 @@ void hftable::max_compatibles() {
 }
 
 void hftable::prime_compatibles() {
-    cpset done, cs;
+    cpset done;
+    bool prime = false;
     done.clear();
-    cs.clear();
     int max_size = 0;
     for(auto& m : M)
         if(m.size() > max_size)
@@ -293,17 +317,74 @@ void hftable::prime_compatibles() {
                 P.insert(m);
         for(auto& p : P) {
             if(p.size() == k) {
+                cpset cs;
+                cs.clear();
                 //check if class set is empty.
-                if(class_set(p,cs)==0)
+                if(class_set(p).empty())
                     continue;
-                
+                for(auto& s : max_subsets(p)) {
+                    if(done.find(s) != done.end()) {
+                        continue;
+                    }
+                    cs = class_set(p);
+                    prime = true;
+                    cp::iterator it1;
+                    for(it1 = P.begin(); it1 != P.end(); ++it1) {
+                        if(it1->size() >= k) {
+                            if(subset(*it1,s)) {
+                                cpset cq = class_set(*it1);
+                                if(subset(cs,cq)) {
+                                    prime = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(prime) {
+                        P.emplace(s);
+                        done.emplace(s);
+                    }
+                }
             }
         }
     }
 }
 
-int hftable::class_set(const cp& p, cpset& cs) {
-    //create pairs from p, scan C for conditionals or unconditionals.
+cpset& hftable::max_subsets(const cp& p) {
+    cpset ms;
+    ms.clear();
+    cp::const_iterator it1, it2;
+    for(it1 = p.cbegin(); it1 != p.cend() - 1; ++it1) {
+        for(it2 = it1 + 1; it2 != p.cend(); ++it2) {
+            cp pair;
+            pair.emplace(*it1,*it2);
+            ms.emplace(pair);
+        }
+    }
+    return ms;
+}
+
+cpset& hftable::class_set(const cp& p) {
+    // create pairs from p.
+    cpset cs;
+    cs.clear();
+    cp::const_iterator it1, it2;
+    for(it1 = p.cbegin(); it1 != p.cend() - 1; ++it1) {
+        for(it2 = it1 + 1; it2 != p.cend(); ++it2) {
+            cp pair;
+            pair.emplace(*it1,*it2);
+            for(auto& c : C[pair]) {
+                string stemp = *(c.begin());
+                if(!stemp.compare("unconditional") || !stemp.compare("incompatible")) {
+                    continue;
+                }
+                if(!subset(p,c)) {
+                    cs.emplace(c);
+                }
+            }
+        }
+    }
+    return cs;
 }
 /*
  * prime_compatibles(C,M){
@@ -312,7 +393,7 @@ int hftable::class_set(const cp& p, cpset& cs) {
  *      foreach(q in M; |q| = k) enqueue(P,q);  Queue all of size k.
  *      foreach(p in P;|p| = k) {
  *          if(class_set(C,p) = 0) then continue;  If empty, skip.
- *          foreach(s in max_subsests(p)) { check all maximal subsets.
+ *          foreach(s in max_subsets(p)) { check all maximal subsets.
  *              if(s in done) then continue;  if computed, skip.
  *              Ts = class_set(C,s);   Find subset's class set.
  *              prime = true;           Init prime as true.
