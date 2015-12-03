@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
     test.reduce_pair_chart();
     test.print_pair_chart();
     test.max_compatibles();
+    test.print_max_comp();
     return 0;
 }
 

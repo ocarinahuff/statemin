@@ -25,6 +25,8 @@ public:
     hftable(Table<hentry> data, Hdr rows, Hdr cols, std::string title) : table(data, rows, cols, title) {}
     void print_table();
     void print_pair_chart();
+    void print_max_comp();
+    void print_prime_comp();
     
     void find_pairs();
     void reduce_pair_chart();
@@ -50,7 +52,6 @@ private:
     //prime comp helpers
     cpset& class_set(const cp& p);
     cpset& max_subsets(const cp& p);
-    bool subset(const cp& s1, const cp& s2);
     bool subset(const cpset& s1, const cpset& s2);
 };
 

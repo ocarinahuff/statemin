@@ -74,6 +74,20 @@ void hftable::print_pair_chart() {
     }
 }
 
+void hftable::print_max_comp() {
+    cout << "Max compatibles:" << endl;
+    for(auto& m : M) {
+        for(auto& s : m) {
+            cout << s;
+        }
+        cout << endl;
+    }
+}
+
+void hftable::print_prime_comp() {
+    
+}
+
 bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
     Row<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
     for(;it1 != row1.end() && it2 != row2.end();it1++,it2++) {
@@ -194,18 +208,6 @@ bool hftable::subset(const mc& s1, const mc& s2) {
     return done.empty();
 }
 
-bool hftable::subset(const cp& s1, const cp& s2) {
-    cp done = s2;
-    for(const auto& s : s1) {
-        for(const auto& t : s2) {
-            if(s == t) {
-                done.erase(s);
-            }
-        }
-    }
-    return done.empty();
-}
-
 bool hftable::subset(const cpset& s1, const cpset& s2) {
     cpset done = s2;
     for(const auto& s : s1) {
@@ -266,7 +268,6 @@ void hftable::max_compatibles() {
     Hdr::iterator it2;
     set<string> Si;
     string i;
-    cout << "Max compatibles:" << endl;
     for(it1 = states.rbegin(), it1++; it1 != states.rend(); it1++) {
         i = it1->second;
         Si.clear();
@@ -281,25 +282,13 @@ void hftable::max_compatibles() {
         if(M.empty()) {
             set<string> tmp;
             tmp.insert(i);
-            cout << "Initial: " << i;
             for(auto& s : Si) {
                 tmp.insert(s);
-                cout << s;
             }
             M.insert(tmp);
         } else {
-            cout << "S" << i << " = ";
-            for(auto& s : Si)
-                cout << s;
-            cout << ": ";
             check_intersectibles(i,Si);
-            for(auto& cl : M) {
-                for(auto& s : cl)
-                    cout << s;
-                cout << ' ';
-            }
         }
-        cout << endl;
     }
 }
 
@@ -328,7 +317,7 @@ void hftable::prime_compatibles() {
                     }
                     cs = class_set(p);
                     prime = true;
-                    cp::iterator it1;
+                    cpset::iterator it1;
                     for(it1 = P.begin(); it1 != P.end(); ++it1) {
                         if(it1->size() >= k) {
                             if(subset(*it1,s)) {
@@ -351,14 +340,15 @@ void hftable::prime_compatibles() {
 }
 
 cpset& hftable::max_subsets(const cp& p) {
-    cpset ms;
+    static cpset ms;
     ms.clear();
     cp::const_iterator it1, it2;
-    for(it1 = p.cbegin(); it1 != p.cend() - 1; ++it1) {
-        for(it2 = it1 + 1; it2 != p.cend(); ++it2) {
+    for(it1 = p.cbegin(); it1 != p.crbegin().base(); ++it1) {
+        for(it2 = it1,++it2; it2 != p.cend(); ++it2) {
             cp pair;
-            pair.emplace(*it1,*it2);
-            ms.emplace(pair);
+            pair.emplace(*it1);
+            pair.emplace(*it2);
+            ms.insert(pair);
         }
     }
     return ms;
@@ -366,13 +356,14 @@ cpset& hftable::max_subsets(const cp& p) {
 
 cpset& hftable::class_set(const cp& p) {
     // create pairs from p.
-    cpset cs;
+    static cpset cs;
     cs.clear();
     cp::const_iterator it1, it2;
-    for(it1 = p.cbegin(); it1 != p.cend() - 1; ++it1) {
-        for(it2 = it1 + 1; it2 != p.cend(); ++it2) {
+    for(it1 = p.cbegin(); it1 != p.crbegin().base(); ++it1) {
+        for(it2 = it1,++it2; it2 != p.cend(); ++it2) {
             cp pair;
-            pair.emplace(*it1,*it2);
+            pair.emplace(*it1);
+            pair.emplace(*it2);
             for(auto& c : C[pair]) {
                 string stemp = *(c.begin());
                 if(!stemp.compare("unconditional") || !stemp.compare("incompatible")) {
