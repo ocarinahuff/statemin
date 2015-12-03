@@ -33,6 +33,11 @@ namespace {
             cout << ',' << *pair.rbegin();
         cout << endl;
     }
+    void print_cp(cp c) {
+        for(auto& s : c)
+            cout << s;
+        cout << endl;
+    }
 }
 
 void hftable::print_table() {
@@ -85,7 +90,13 @@ void hftable::print_max_comp() {
 }
 
 void hftable::print_prime_comp() {
-    
+    cout << "Prime compatibles:" << endl;
+    for(auto& p : P) {
+        for(auto& s : p) {
+            cout << s;
+        }
+        cout << endl;
+    }
 }
 
 bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
@@ -309,13 +320,15 @@ void hftable::prime_compatibles() {
                 cpset cs;
                 cs.clear();
                 //check if class set is empty.
+                //print_cp(p);
                 if(class_set(p).empty())
                     continue;
                 for(auto& s : max_subsets(p)) {
+                    //print_cp(s);
                     if(done.find(s) != done.end()) {
                         continue;
                     }
-                    cs = class_set(p);
+                    cs = class_set(s);
                     prime = true;
                     cpset::iterator it1;
                     for(it1 = P.begin(); it1 != P.end(); ++it1) {
@@ -343,6 +356,12 @@ cpset& hftable::max_subsets(const cp& p) {
     static cpset ms;
     ms.clear();
     cp::const_iterator it1, it2;
+    if(p.size() == 2) {
+        cp s1 = {*(p.begin())}, s2 = {*(p.rbegin())};
+        ms.emplace(s1);
+        ms.emplace(s2);
+        return ms;
+    }
     for(it1 = p.cbegin(); it1 != p.crbegin().base(); ++it1) {
         for(it2 = it1,++it2; it2 != p.cend(); ++it2) {
             cp pair;
@@ -358,13 +377,17 @@ cpset& hftable::class_set(const cp& p) {
     // create pairs from p.
     static cpset cs;
     cs.clear();
+    if(p.size() == 1)
+        return cs;
     cp::const_iterator it1, it2;
     for(it1 = p.cbegin(); it1 != p.crbegin().base(); ++it1) {
         for(it2 = it1,++it2; it2 != p.cend(); ++it2) {
             cp pair;
             pair.emplace(*it1);
             pair.emplace(*it2);
+            //print_pair(pair);
             for(auto& c : C[pair]) {
+                //print_pair(c);
                 string stemp = *(c.begin());
                 if(!stemp.compare("unconditional") || !stemp.compare("incompatible")) {
                     continue;
@@ -377,31 +400,3 @@ cpset& hftable::class_set(const cp& p) {
     }
     return cs;
 }
-/*
- * prime_compatibles(C,M){
- *  done = 0;  Initialize already computed set.
- *  for(k = |largest(M)|;k>=1;k--)   Loop largest to smallest.
- *      foreach(q in M; |q| = k) enqueue(P,q);  Queue all of size k.
- *      foreach(p in P;|p| = k) {
- *          if(class_set(C,p) = 0) then continue;  If empty, skip.
- *          foreach(s in max_subsets(p)) { check all maximal subsets.
- *              if(s in done) then continue;  if computed, skip.
- *              Ts = class_set(C,s);   Find subset's class set.
- *              prime = true;           Init prime as true.
- *              foreach(q in P;|q} > k) {   Check all larger primes.
- *                  if(s subset q) then {
- *                      Tq = class_set(C,q);
- *                      if(Tq subset or equal Ts) then {
- *                          prime = false;
- *                          break;
- *                      }
- *                  }
- *              }
- *              if(prime = 1) then enqueue(P,s);
- *              done = done union {s};
- *          }
- *      }
- *  }
- * return(P);
- * }
- */
