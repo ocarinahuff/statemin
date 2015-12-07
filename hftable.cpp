@@ -92,7 +92,7 @@ void hftable::print_max_comp() {
 void hftable::print_prime_comp() {
     cout << "Prime compatibles:" << endl;
     for(auto& p : P) {
-        for(auto& s : p) {
+        for(auto& s : p.second) {
             cout << s;
         }
         cout << endl;
@@ -306,6 +306,7 @@ void hftable::max_compatibles() {
 void hftable::prime_compatibles() {
     cpset done;
     bool prime = false;
+    int index = 1;
     done.clear();
     int max_size = 0;
     for(auto& m : M)
@@ -314,27 +315,27 @@ void hftable::prime_compatibles() {
     for(int k = max_size; k >= 1; --k) {
         for(auto& m : M)
             if(m.size() == k)
-                P.insert(m);
+                P.emplace(index++,m);
         for(auto& p : P) {
-            if(p.size() == k) {
+            if(p.second.size() == k) {
                 cpset cs;
                 cs.clear();
                 //check if class set is empty.
                 //print_cp(p);
-                if(class_set(p).empty())
+                if(class_set(p.second).empty())
                     continue;
-                for(auto& s : max_subsets(p)) {
+                for(auto& s : max_subsets(p.second)) {
                     //print_cp(s);
                     if(done.find(s) != done.end()) {
                         continue;
                     }
                     cs = class_set(s);
                     prime = true;
-                    cpset::iterator it1;
+                    map<int,cp>::iterator it1;
                     for(it1 = P.begin(); it1 != P.end(); ++it1) {
-                        if(it1->size() >= k) {
-                            if(subset(*it1,s)) {
-                                cpset cq = class_set(*it1);
+                        if(it1->second.size() >= k) {
+                            if(subset(it1->second,s)) {
+                                cpset cq = class_set(it1->second);
                                 if(subset(cs,cq)) {
                                     prime = false;
                                     break;
@@ -343,7 +344,7 @@ void hftable::prime_compatibles() {
                         }
                     }
                     if(prime) {
-                        P.emplace(s);
+                        P.emplace(index++,s);
                         done.emplace(s);
                     }
                 }
@@ -399,4 +400,10 @@ cpset& hftable::class_set(const cp& p) {
         }
     }
     return cs;
+}
+
+void hftable::solve_prime_bcp() {
+    // generate bcp cover.
+    // use bcp solver.
+    // save results.
 }
