@@ -35,8 +35,11 @@ public:
     
     void prime_compatibles();
     
+    void solve_prime_bcp();
+    
 private:
-    std::set<std::set<std::string> > M, P;
+    std::set<std::set<std::string> > M;
+    std::map<int,std::set<std::string> > P;
     std::map<cp,cpset> C;
     
     //generate pairs helpers
