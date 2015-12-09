@@ -14,6 +14,8 @@
 #include "hftable.h"
 #include "typedefs.h"
 #include <iostream>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -37,6 +39,14 @@ namespace {
         for(auto& s : c)
             cout << s;
         cout << endl;
+    }
+    
+    string to_string(int t) {
+        string sout;
+        stringstream ss;
+        ss << t;
+        ss >> sout;
+        return sout;
     }
 }
 
@@ -403,7 +413,44 @@ cpset& hftable::class_set(const cp& p) {
 }
 
 void hftable::solve_prime_bcp() {
-    // generate bcp cover.
+    table<char> btbl;
+    Hdr rows, cols;
+    btbl.setTitle("Prime Compatible covering");
+    row r = 1;
+    col c;
+    // scan each prime, for each possible state.
+    for(auto& s : this->getRowHdr()) {
+        c = 1;
+        rows[r] = to_string(r);
+        for(auto& p : P) {
+            cols[c] = to_string(c);
+            if(contains(s, p)) {
+                btbl.setElement('1',r,c++);
+            } else {
+                btbl.setElement('-',r,c++);
+            }
+        }
+        ++r;
+    }
+    // scan each prime's class set for additional coverings.
+    for(auto& p1 : P) {
+        for(auto& cs : class_set(p1.second)) {
+            for(auto& p2 : P) {
+                 
+            }
+        }
+    }
+    btbl.setColHdr(cols);
+    btbl.setRowHdr(rows);
     // use bcp solver.
     // save results.
+}
+
+bool hftable::contains(string s, const cp& p) {
+    for(auto& str : p) {
+        if(!s.compare(str)) {
+            return true;
+        }
+    }
+    return false;
 }
