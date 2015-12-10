@@ -87,7 +87,7 @@ Hdr table<T>::getColHdr() {
 template <class T>
 void table<T>::delRow(row r) {
    for(auto& c : cols)
-       data.template erase({r,c});
+       data.template erase({r,c.first});
    rows.erase(r);
 }
 
@@ -140,6 +140,10 @@ void table<T>::addCol(Col<T> C, col c, std::string name) {
    cols[c] = name;
 }
 
+template <class T>
+bool table<T>::isempty() {
+    return data.empty();
+}
 
 #endif /* TABLE_IMPL_H */
 

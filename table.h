@@ -40,6 +40,7 @@ public:
     void setElement(T e, row r, col c);
     void addRow(Row<T> R, row r, std::string name);
     void addCol(Col<T> C, col c, std::string name);
+    bool isempty();
 private:
     Table<T> data;
     Hdr rows;
