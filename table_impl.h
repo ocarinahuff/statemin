@@ -77,8 +77,6 @@ Row<T> table<T>::getRow(row r) const {
 template <class T>
 Col<T> table<T>::getCol(col c) const {
    Col<T> COL;
-   if(cols.find(c) == cols.end())
-       return COL;
    for(auto& r : rows) {
        try {
            COL.emplace(r.first,data.at({r.first,c}));

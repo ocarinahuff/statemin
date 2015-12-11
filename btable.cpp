@@ -296,6 +296,8 @@ int btable::lower_bound(const btable& A, const Sol& x) {
 }
 
 void btable::shortest_row(btable& A, btable& MIS) {
+    if(A.isempty())
+        return;
     int shortest_row = 0, min_count = 32000, count;
     for(auto& r : A.getRowHdr()) {
         count = row_count(A.getRow(r.first));
