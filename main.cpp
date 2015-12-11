@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     test.max_compatibles();
     //test.print_max_comp();
     test.prime_compatibles();
-    test.print_prime_comp();
+    //test.print_prime_comp();
     test.solve_prime_bcp();
     return 0;
 }

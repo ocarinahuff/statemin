@@ -15,7 +15,7 @@
 #define TABLE_IMPL_H
 
 #include "table.h"
-
+#include <iostream>
 
 template <class T>
 table<T>::table() {
@@ -60,24 +60,46 @@ void table<T>::setTitle(std::string title) {
 }
 
 template <class T>
-Row<T> table<T>::getRow(row r) {
+Row<T> table<T>::getRow(row r) const {
    Row<T> ROW;
-   for(auto& c : cols)
-       ROW[c.first] = data[{r,c.first}];
+   for(auto& c : cols) {
+       try {
+           ROW.emplace(c.first,data.at({r,c.first}));
+       }
+       catch(std::out_of_range& e) {
+           std::cerr << e.what() << " row " << r << std::endl;
+       }
+   }
+   
    return ROW;
 }
 
 template <class T>
-Col<T> table<T>::getCol(col c) {
+Col<T> table<T>::getCol(col c) const {
    Col<T> COL;
-   for(auto& r : rows)
-       COL[r.first] = data[{r.first,c}];
+   if(cols.find(c) == cols.end())
+       return COL;
+   for(auto& r : rows) {
+       try {
+           COL.emplace(r.first,data.at({r.first,c}));
+       }
+       catch(std::out_of_range& e) {
+           std::cerr << e.what() << " col " << c << std::endl;
+       }
+   }
+   
    return COL;
 }
 
 template <class T>
 T table<T>::getElement(row r, col c) const {
-   return data.at({r,c});
+    
+    try {
+        return data.at({r,c});
+    }
+    catch(std::out_of_range& e) {
+        std::cerr << e.what() << " cell " << r << ',' << c << std::endl;
+    }
 }
 
 template <class T>

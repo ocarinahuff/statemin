@@ -423,6 +423,7 @@ void hftable::solve_prime_bcp() {
         cols[c] = "c" + to_string(c);
     }
     btbl.setColHdr(cols);
+    btbl.init_solutions();
     // scan each prime, for each possible state.
     for(auto& s : this->getRowHdr()) {
         for(auto& p : P) {
@@ -432,7 +433,8 @@ void hftable::solve_prime_bcp() {
                 R[p.first] = '-';
             }
         }
-        btbl.addRow(R, r, "r" + to_string(r++));
+        btbl.addRow(R, r, "r" + to_string(r));
+        ++r;
     }
     // scan each prime's class set for additional coverings.
     bool found;
@@ -450,11 +452,12 @@ void hftable::solve_prime_bcp() {
                 }
             }
             if(found) {
-                btbl.addRow(R, r, "r" + to_string(r++));
+                btbl.addRow(R, r, "r" + to_string(r));
+                ++r;
             }
         }
     }
-    btbl.print_table(INIT);
+    btbl.bcp();
     // use bcp solver.
     // save results.
 }

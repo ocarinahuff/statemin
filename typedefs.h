@@ -51,9 +51,9 @@ typedef std::map<int,std::string> Hdr;
 template <class T>
 using Table = std::map<cell,T>;
 template <class T>
-using Row = std::map<row,T>;
+using Row = std::map<col,T>;
 template <class T>
-using Col = std::map<col,T>;
+using Col = std::map<row,T>;
 
 typedef std::map<int,bool> Sol;
 
