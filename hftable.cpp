@@ -12,6 +12,7 @@
  */
 
 #include "hftable.h"
+#include "btable.h"
 #include "typedefs.h"
 #include <iostream>
 #include <sstream>
@@ -413,35 +414,47 @@ cpset& hftable::class_set(const cp& p) {
 }
 
 void hftable::solve_prime_bcp() {
-    table<char> btbl;
+    btable btbl;
     Hdr rows, cols;
+    Row<char> R;
     btbl.setTitle("Prime Compatible covering");
     row r = 1;
-    col c;
-    // scan each prime, for each possible state.
-    for(auto& s : this->getRowHdr()) {
-        c = 1;
-        rows[r] = to_string(r);
-        for(auto& p : P) {
-            cols[c] = to_string(c);
-            if(contains(s, p)) {
-                btbl.setElement('1',r,c++);
-            } else {
-                btbl.setElement('-',r,c++);
-            }
-        }
-        ++r;
-    }
-    // scan each prime's class set for additional coverings.
-    for(auto& p1 : P) {
-        for(auto& cs : class_set(p1.second)) {
-            for(auto& p2 : P) {
-                 
-            }
-        }
+    for(col c = 1; c <= P.size(); ++c) {
+        cols[c] = "c" + to_string(c);
     }
     btbl.setColHdr(cols);
-    btbl.setRowHdr(rows);
+    // scan each prime, for each possible state.
+    for(auto& s : this->getRowHdr()) {
+        for(auto& p : P) {
+            if(contains(s.second, p.second)) {
+                R[p.first] = '1';
+            } else {
+                R[p.first] = '-';
+            }
+        }
+        btbl.addRow(R, r, "r" + to_string(r++));
+    }
+    // scan each prime's class set for additional coverings.
+    bool found;
+    for(auto& p1 : P) {
+        R[p1.first] = '0';
+        for(auto& cs : class_set(p1.second)) {
+            found = false;
+            for(auto& p2 : P) {
+                if(subset(p2.second,cs)) {
+                    found = true;
+                    R[p2.first] = '1';
+                } else {
+                    if(p1.first != p2.first)
+                        R[p2.first] = '-';
+                }
+            }
+            if(found) {
+                btbl.addRow(R, r, "r" + to_string(r++));
+            }
+        }
+    }
+    btbl.print_table(INIT);
     // use bcp solver.
     // save results.
 }

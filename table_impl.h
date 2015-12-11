@@ -14,6 +14,22 @@
 #ifndef TABLE_IMPL_H
 #define TABLE_IMPL_H
 
+#include "table.h"
+
+
+template <class T>
+table<T>::table() {
+    clear();
+}
+
+template <class T>
+void table<T>::clear() {
+    data.clear();
+    rows.clear();
+    cols.clear();
+    title.clear();
+}
+
 template <class T>
 table<T>::table(Table<T> data, Hdr rows, Hdr cols, std::string title)
 : data(data), rows(rows), cols(cols), title(title) {
@@ -60,8 +76,8 @@ Col<T> table<T>::getCol(col c) {
 }
 
 template <class T>
-T table<T>::getElement(row r, col c) {
-   return data[{r,c}];
+T table<T>::getElement(row r, col c) const {
+   return data.at({r,c});
 }
 
 template <class T>
@@ -75,12 +91,12 @@ std::string table<T>::getTitle() {
 }
 
 template <class T>
-Hdr table<T>::getRowHdr() {
+Hdr table<T>::getRowHdr() const {
    return rows;
 }
 
 template <class T>
-Hdr table<T>::getColHdr() {
+Hdr table<T>::getColHdr() const {
    return cols;
 }
 
@@ -141,7 +157,7 @@ void table<T>::addCol(Col<T> C, col c, std::string name) {
 }
 
 template <class T>
-bool table<T>::isempty() {
+bool table<T>::isempty() const {
     return data.empty();
 }
 

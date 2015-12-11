@@ -35,6 +35,12 @@ typedef struct CELL {
         else
             return r < cl.r;
     }
+    bool operator==(const CELL& c1) const {
+        return r == c1.r && c == c1.c;
+    }
+    bool operator!=(const CELL& c1) const {
+        return r != c1.r || c != c1.c;
+    }
 } cell;
 
 // this stores the names of the rows and columns, mapped to the 

@@ -22,25 +22,34 @@ public:
     table();
     table(Table<T> data, Hdr rows, Hdr cols, std::string title);
     virtual ~table();
+    
     Row<T> getRow(row r);
+    void setRow(Row<T> R, row r);
+    void addRow(Row<T> R, row r, std::string name);
+    void delRow(row r);
+    
     Col<T> getCol(col c);
-    T getElement(row r, col c);
+    void setCol(Col<T> C, col c);
+    void addCol(Col<T> C, col c, std::string name);
+    void delCol(col c);
+    
+    T getElement(row r, col c) const;
+    void setElement(T e, row r, col c);
+    
     Table<T> getData();
     void setData(Table<T> data);
+    
     std::string getTitle();
     void setTitle(std::string title);
-    Hdr getRowHdr();
+    
+    Hdr getRowHdr() const;
     void setRowHdr(Hdr rows);
-    Hdr getColHdr();
+    
+    Hdr getColHdr() const;
     void setColHdr(Hdr cols);
-    void delRow(row r);
-    void delCol(col c);
-    void setRow(Row<T> R, row r);
-    void setCol(Col<T> C, col c);
-    void setElement(T e, row r, col c);
-    void addRow(Row<T> R, row r, std::string name);
-    void addCol(Col<T> C, col c, std::string name);
-    bool isempty();
+        
+    bool isempty() const;
+    void clear();
 private:
     Table<T> data;
     Hdr rows;

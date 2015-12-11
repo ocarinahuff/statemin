@@ -58,7 +58,7 @@ private:
     bool subset(const cpset& s1, const cpset& s2);
     
     //bcp helpers
-    bool contains(string s, const cp& p);
+    bool contains(std::string s, const cp& p);
 };
 
 #endif /* HFTABLE_H */

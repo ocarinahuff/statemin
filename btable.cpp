@@ -12,12 +12,10 @@
 using namespace std;
 
 btable::btable() {
+    clear();
 }
 
-btable::btable(const btable& orig) {
-}
-
-void btable::print_A(const table<char>& A, State s) {
+void btable::print_table(State s) {
     switch(s) {
     case INIT:
         cout << "Initial ";
@@ -29,19 +27,49 @@ void btable::print_A(const table<char>& A, State s) {
         cout << "Final ";
         break;
     }
-    cout << "state of " << title << " table:" << endl;
-    if(A.isempty()) {
+    cout << "state of " << getTitle() << " table:" << endl;
+    if(isempty()) {
         cout << "Table is empty!" << endl;
         return;
     }	
 
-    for(const auto& c : A.getColHdr())
+    for(const auto& c : getColHdr())
         cout << c.second << ((c.first < 10)?" ":"");
     cout << endl;
 
-    for(const auto& r : A.getRowHdr()) {
-        for(const auto& c : A.getColHdr())
-            cout << A.getElement(r.first,c.first) << "  ";
+    for(const auto& r : getRowHdr()) {
+        for(const auto& c : getColHdr())
+            cout << getElement(r.first,c.first) << "  ";
+        cout << r.second << endl;
+    }
+}
+
+void btable::print_A(const btable& A, State s) {
+    btable Ap = A;
+    switch(s) {
+    case INIT:
+        cout << "Initial ";
+        break;
+    case INTMED:
+        cout << "Intermediate ";
+        break;
+    case FINAL:
+        cout << "Final ";
+        break;
+    }
+    cout << "state of " << Ap.getTitle() << " table:" << endl;
+    if(Ap.isempty()) {
+        cout << "Table is empty!" << endl;
+        return;
+    }	
+
+    for(const auto& c : Ap.getColHdr())
+        cout << c.second << ((c.first < 10)?" ":"");
+    cout << endl;
+
+    for(const auto& r : Ap.getRowHdr()) {
+        for(auto& c : Ap.getColHdr())
+            cout << Ap.getElement(r.first,c.first) << "  ";
         cout << r.second << endl;
     }
 }
@@ -76,21 +104,21 @@ void btable::print_x(const Sol& x, State s) {
     cout << "}" << endl;
 }
 
-void btable::del_rows_col(col c, char val, btbl& A) {
-    for(auto& r : A.rows)
-        if(A.data[make_pair(r.first,c)] == val)
-            del_row(r.first, A);
-    del_col(c, A);
+void btable::del_rows_col(col c, char val, btable& A) {
+    for(auto& r : A.getRowHdr())
+        if(A.getElement(r.first,c) == val)
+            A.delRow(r.first);
+    A.delCol(c);
 }
 
 void btable::bcp() {
-    print_A(this,INIT);
-    Sol xp = bcp(this,x,b);
-    print_x(xp,FINAL);
+    //print_A(this,INIT);
+    //Sol xp = bcp(this,x,b);
+    //print_x(xp,FINAL);
 }
     
-Sol& btable::bcp(const table<char>& A, const Sol& x, const Sol& b) {
-    table<char> Ap = A;
+Sol& btable::bcp(const btable& A, const Sol& x, const Sol& b) {
+    btable Ap = A;
     static Sol xp = x;
     static Sol bp = b;
     reduce(Ap,xp);
@@ -122,8 +150,8 @@ Sol& btable::bcp(const table<char>& A, const Sol& x, const Sol& b) {
 //    return bp;
 }
 
-void btable::reduce(table<char>& A, Sol& x) {
-    table<char> Ap;
+void btable::reduce(btable& A, Sol& x) {
+    btable Ap;
     do {
         Ap = A;
         remove_essential_rows(A,x);
@@ -132,12 +160,13 @@ void btable::reduce(table<char>& A, Sol& x) {
     } while(!A.isempty() && A.getData() != Ap.getData());
 }
 
-bool btable::find_essential_row(const table<char>& A, col& Col, char& val) {
+bool btable::find_essential_row(const btable& A, col& Col, char& val) {
+    btable Ap = A;
     int count = 0;
     char check_val;
-    for(const auto& r : A.getRowHdr()) {
-        for(const auto& c : A.getColHdr()) {
-            check_val = A.getElement(r.first,c.first);
+    for(auto& r : Ap.getRowHdr()) {
+        for(auto& c : Ap.getColHdr()) {
+            check_val = Ap.getElement(r.first,c.first);
             if(check_val != '-') {
                 ++count;
                 Col = c.first;
@@ -149,7 +178,7 @@ bool btable::find_essential_row(const table<char>& A, col& Col, char& val) {
     return false;
 }
 
-void btable::remove_essential_rows(table<char>& A, Sol& x) {
+void btable::remove_essential_rows(btable& A, Sol& x) {
     col C;
     char val;
     while(find_essential_row(A, C, val)) {
@@ -158,11 +187,12 @@ void btable::remove_essential_rows(table<char>& A, Sol& x) {
     }
 }
 
-bool btable::check_row_dominance(row r1, row r2, const table<char>& A) {
-    for(const auto& c : A.getColHdr()) {
+bool btable::check_row_dominance(row r1, row r2, const btable& A) {
+    btable Ap = A;
+    for(auto& c : Ap.getColHdr()) {
         col C = c.first;
-        char val1 = A.getElement(r1,C);
-        char val2 = A.getElement(r2,C);
+        char val1 = Ap.getElement(r1,C);
+        char val2 = Ap.getElement(r2,C);
         if(val1 == '-')
             continue;
         if(val1 != val2)
@@ -171,7 +201,7 @@ bool btable::check_row_dominance(row r1, row r2, const table<char>& A) {
     return true;
 }
 
-void btable::remove_dominating_rows(table<char>& A) {
+void btable::remove_dominating_rows(btable& A) {
     for(auto& r1 : A.getRowHdr()) {
         for(auto& r2 : A.getRowHdr()) {
             row row1 = r1.first, row2 = r2.first;
@@ -183,11 +213,12 @@ void btable::remove_dominating_rows(table<char>& A) {
     }
 }
 
-bool btable::check_column_dominance(col c1, col c2, const table<char>& A) {
-    for(const auto& r : A.getRowHdr()) {
+bool btable::check_column_dominance(col c1, col c2, const btable& A) {
+    btable Ap = A;
+    for(const auto& r : Ap.getRowHdr()) {
         row R = r.first;
-        char val1 = A.getElement(R,c1);
-        char val2 = A.getElement(R,c2);
+        char val1 = Ap.getElement(R,c1);
+        char val2 = Ap.getElement(R,c2);
         if(val1 == '1')
             continue;
         if(val1 == '-' && val2 == '1')
@@ -198,7 +229,7 @@ bool btable::check_column_dominance(col c1, col c2, const table<char>& A) {
     return true;
 }
 
-void btable::remove_dominated_columns(table<char>& A, Sol& x) {
+void btable::remove_dominated_columns(btable& A, Sol& x) {
     for(auto& c1 : A.getColHdr()) {
         for(auto& c2 : A.getColHdr()) {
             col col1 = c1.first, col2 = c2.first;
@@ -212,11 +243,11 @@ void btable::remove_dominated_columns(table<char>& A, Sol& x) {
     }
 }
 
-int btable::lower_bound(const table<char>& A, const Sol& x) {
-    table<char> Ac = A;
-    table<char> MIS;
+int btable::lower_bound(const btable& A, const Sol& x) {
+    btable Ac = A;
+    btable MIS;
     //MIS.data.clear();
-    MIS.setColHdr(A.getColHdr());
+    MIS.setColHdr(Ac.getColHdr());
     for(auto& r : Ac.getRowHdr()) {
         row rw = r.first;
         for(auto& c : Ac.getColHdr()) {
@@ -234,7 +265,7 @@ int btable::lower_bound(const table<char>& A, const Sol& x) {
     return MIS.getRowHdr().size() + cost(x);
 }
 
-void btable::shortest_row(table<char>& A, table<char>& MIS) {
+void btable::shortest_row(btable& A, btable& MIS) {
     int shortest_row = 0, min_count = 32000, count;
     for(auto& r : A.getRowHdr()) {
         count = row_count(r.first,A);
@@ -247,7 +278,7 @@ void btable::shortest_row(table<char>& A, table<char>& MIS) {
     A.delRow(shortest_row);
 }
 
-void btable::delete_intersect_rows(table<char>& A, const table<char>& MIS) {
+void btable::delete_intersect_rows(btable& A, const btable& MIS) {
     if(A.isempty())
         return;
     for(auto& rm : MIS.getRowHdr()) {
@@ -260,26 +291,26 @@ void btable::delete_intersect_rows(table<char>& A, const table<char>& MIS) {
 }
 
 bool btable::check_row_intersect(row r1, row r2, 
-                                 const table<char>& MIS, const table<char>& A) {
-    for(const auto& c : A.getColHdr())
+                                 const btable& MIS, const btable& A) {
+    for(auto& c : A.getColHdr())
         if(MIS.getElement(r1,c.first) == '1' && 
            A.getElement(r2,c.first) == '1')
             return true;
     return false;
 }
 
-bool btable::terminal_case1(const table<char>& A) {
+bool btable::terminal_case1(const btable& A) {
     return A.isempty();
 }
 
-bool btable::terminal_case2(const table<char>& A) {
+bool btable::terminal_case2(const btable& A) {
     for(const auto& r : A.getRowHdr())
         if(row_all_dashes(r.first, A))
             return false;
     return false;
 }
 
-bool btable::row_all_dashes(row r, const table<char>& A) {
+bool btable::row_all_dashes(row r, const btable& A) {
     for(const auto& c : A.getColHdr())
         if(A.getElement(r,c.first) != '-')
             return false;
@@ -295,7 +326,7 @@ int btable::cost(const Sol& sol) {
     return count;
 }
 
-int btable::row_count(row r, const table<char>& A) {
+int btable::row_count(row r, const btable& A) {
     int count = 0;
     for(const auto& c : A.getColHdr())
         if(A.getElement(r,c.first) != '-')
