@@ -125,10 +125,13 @@ void btable::del_rows_col(col c, char val, btable& A) {
     A.delCol(c);
 }
 
-void btable::bcp() {
+void btable::bcp(set<int> &results) {
     print_table(INIT);
-    //Sol xp = bcp(*this,x,b);
-    print_x(bcp(*this,x,b),FINAL);
+    Sol xp = bcp(*this,x,b);
+    print_x(xp,FINAL);
+    for(auto& x : xp)
+        if(x.second)
+            results.emplace(x.first);
 }
     
 Sol& btable::bcp(const btable& A, const Sol& x, const Sol& b) {

@@ -37,10 +37,13 @@ public:
     
     void solve_prime_bcp();
     
+    void reduce_table();
+    
 private:
     std::set<std::set<std::string> > M;
     std::map<int,std::set<std::string> > P;
     std::map<cp,cpset> C;
+    std::set<int> bcp_results;
     
     //generate pairs helpers
     bool check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2);

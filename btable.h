@@ -15,7 +15,7 @@ class btable : public table<char> {
 public:
     btable();
     btable(Table<char> data, Hdr rows, Hdr cols, std::string title);
-    void bcp();
+    void bcp(std::set<int>& results);
     void print_table(State s);
     void init_solutions();
 private:

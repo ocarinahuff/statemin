@@ -457,9 +457,7 @@ void hftable::solve_prime_bcp() {
             }
         }
     }
-    btbl.bcp();
-    // use bcp solver.
-    // save results.
+    btbl.bcp(bcp_results);
 }
 
 bool hftable::contains(string s, const cp& p) {
@@ -469,4 +467,19 @@ bool hftable::contains(string s, const cp& p) {
         }
     }
     return false;
+}
+
+void hftable::reduce_table() {
+    Table<hentry> reduced_data;
+    hftable reduced_table;
+    Hdr new_rows;
+    for(auto& rw : bcp_results) {
+        new_rows.emplace(rw, to_string(rw));
+        for(auto& cl : getColHdr()) {
+            //variable to store output
+            //variable to store next_state
+            //variable to temp store pair for determining next_state.
+            //cycle through each state of P[rw].
+        }
+    }
 }
