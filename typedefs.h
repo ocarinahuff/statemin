@@ -18,14 +18,21 @@
 #ifndef TYPEDEFS_H
 #define	TYPEDEFS_H
 
+// simple substitution for readability.
 typedef int row;
 typedef int col;
 
+// this stores the next state and output for each entry
+// in the huffman flow table.
 typedef struct {
-    std::string next_state;
+    int next_state;
     char output;
 } hentry;
 
+/**
+ * This is the row/column cell construct used to map a table to a linear
+ * std::map data structure.
+ */
 typedef struct CELL {
     row r;
     col c;
@@ -43,8 +50,11 @@ typedef struct CELL {
     }
 } cell;
 
-// this stores the names of the rows and columns, mapped to the 
-// internal ids used for rows and columns.
+/**
+ * This stores the names of the rows and columns, mapped to the 
+ * internal ids used for rows and columns.  It is used by the 
+ * printer functions to output to std::cout.
+ */ 
 typedef std::map<int,std::string> Hdr;
 
 // this is a template that maps each cell to a data of type class T.
@@ -57,13 +67,17 @@ using Col = std::map<row,T>;
 
 typedef std::map<int,bool> Sol;
 
-typedef std::set<std::string> cp;
+typedef std::set<int> cp;
 typedef std::set<cp> cpset;
 
-typedef std::set<std::string> mc;
+typedef std::set<int> mc;
 typedef std::set<mc> mcset;
 
 enum State {INIT, INTMED, FINAL};
+
+enum PairState {INCOMPATIBLE = -1, UNCONDITIONAL = 0};
+
+enum NextState {NOSTATE = 0};
 
 #endif /* TYPEDEFS_H */
 

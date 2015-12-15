@@ -69,7 +69,7 @@ void hftable::print_table() {
         cout << x.second << "  ";
         for(auto& y : getColHdr()) {
             hentry e = getElement(x.first,y.first);
-            cout << e.next_state << ',' << e.output << "  ";
+            cout << (e.next_state == 0 ? "-" : getRowHdr()[e.next_state]) << ',' << e.output << "  ";
         }
         cout << endl;
     }
@@ -80,11 +80,17 @@ void hftable::print_pair_chart() {
     for(auto& c : C) {
         cout << *(c.first.begin()) << ',' << *(c.first.rbegin()) << ": ";
         for(auto& cps : c.second) {
-            cout << *(cps.begin());
-            if(cps.size() == 1)
+            int first = *(cps.begin()), second = *(cps.rbegin());
+            if(first == PairState::INCOMPATIBLE) {
+                cout << "Incompatible";
                 break;
+            }
+            else if(first == PairState::UNCONDITIONAL) {
+                cout << "Unconditional";
+                break;
+            }
             else
-                cout << ',' << *(cps.rbegin()) << ' ';
+                cout << getRowHdr()[first] << ',' << getRowHdr()[second] << ' ';
         }
         cout << endl;
     }
@@ -110,6 +116,16 @@ void hftable::print_prime_comp() {
     }
 }
 
+void hftable::print_reduced_key() {
+    for(auto& key : bcp_results) {
+        cout << key << " -> ";
+        for(auto& p : P[key]) {
+            cout << p;
+        }
+        cout << endl;
+    }
+}
+
 bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
     Row<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
     for(;it1 != row1.end() && it2 != row2.end();it1++,it2++) {
@@ -126,12 +142,12 @@ bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
 bool hftable::check_unc_comp(const Row<hentry>& row1, const Row<hentry>& row2, const cp& current_state) {
     Row<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
     for(;it1 != row1.end() && it2 != row2.end();it1++,it2++) {
-        string nstate1 = it1->second.next_state;
-        string nstate2 = it2->second.next_state;
+        int nstate1 = it1->second.next_state;
+        int nstate2 = it2->second.next_state;
         cp next_state = {nstate1,nstate2};
-        if(!nstate1.compare("-") || !nstate2.compare("-"))
+        if(nstate1 == NextState::NOSTATE || nstate2 == NextState::NOSTATE)
             continue;
-        if(!!nstate1.compare(nstate2))
+        if(nstate1 != nstate2)
             if(current_state == next_state)
                 continue;
             else
@@ -155,34 +171,38 @@ void hftable::find_pairs() {
     cp state_pair, current_state, next_state;
     Row<hentry> row1, row2;
     Row<hentry>::iterator itr1, itr2;
-    for(it1 = rows.begin(); it1 != rows.end(); ++it1) {
-        for(++(it2 = it1); it2 != rows.end(); ++it2) {
+    for(it1 = rows.begin(); it1 != --(rows.end()); ++it1) {
+        it2 = it1;
+        for(++it2; it2 != rows.end(); ++it2) {
             row1 = getRow(it1->first);
             row2 = getRow(it2->first);
-            current_state = {it1->second,it2->second};
+            current_state = {it1->first,it2->first};
             state_set.clear();
             state_pair.clear();
             next_state.clear();
             if(check_out_comp(row1,row2))
                 if(check_unc_comp(row1,row2,current_state)) {
-                    state_pair.emplace("unconditional");
+                    state_pair.emplace(PairState::UNCONDITIONAL);
                     state_set.emplace(state_pair);
                 } else {
                     for(itr1 = row1.begin(), itr2 = row2.begin();
                         itr1 != row1.end() && itr2 != row2.end();
                         ++itr1,++itr2) {
-                        string nstate1 = itr1->second.next_state;
-                        string nstate2 = itr2->second.next_state;
-                        if(!nstate1.compare("-") || !nstate2.compare("-") || !nstate1.compare(nstate2))
+                        int nstate1 = itr1->second.next_state;
+                        int nstate2 = itr2->second.next_state;
+                        if(nstate1 == NextState::NOSTATE || 
+                           nstate2 == NextState::NOSTATE || 
+                           nstate1 == nstate2)
                             continue;
-                        else
+                        else {
                             next_state = {nstate1,nstate2};
+                        }
                         if(current_state != next_state)
                             state_set.emplace(next_state);
                     }
                 }
             else {
-                state_pair.emplace("incompatible");
+                state_pair.emplace(PairState::INCOMPATIBLE);
                 state_set.emplace(state_pair);
             }
             C[current_state] = state_set;
@@ -192,21 +212,22 @@ void hftable::find_pairs() {
 
 void hftable::reduce_pair_chart() {
     bool recheck;
-    string state;
+    int state;
     cpset state_inc, mark_inc;
     cp inc;
-    inc.emplace("incompatible");
+    inc.emplace(PairState::INCOMPATIBLE);
     state_inc.emplace(inc);
     do {
         recheck = false;
         mark_inc.clear();
         for(auto& c : C) {
             state = *(c.second.begin()->begin());
-            if(!state.compare("incompatible") || !state.compare("unconditional"))
+            if(state == PairState::INCOMPATIBLE ||
+               state == PairState::UNCONDITIONAL)
                 continue;
             for(auto& cps : c.second) {
                 state = *(C[cps].begin()->begin());
-                if(!state.compare("incompatible")) {
+                if(state == PairState::INCOMPATIBLE) {
                     mark_inc.insert(c.first);
                     recheck = true;
                 }
@@ -242,7 +263,7 @@ bool hftable::subset(const cpset& s1, const cpset& s2) {
     return done.empty();
 }
 
-void hftable::check_intersectibles(string i, const mc& Si) {
+void hftable::check_intersectibles(int i, const mc& Si) {
     mc tmp, rem;
     bool found = false;
     for(auto& cl : M) {
@@ -250,7 +271,7 @@ void hftable::check_intersectibles(string i, const mc& Si) {
         tmp.insert(i);
         for(auto& s : Si) {
             for(auto& c : cl) {
-                if(!s.compare(c)) {
+                if(s == c) {
                     tmp.insert(s);
                     rem.erase(s);
                     break;
@@ -288,21 +309,21 @@ void hftable::max_compatibles() {
     Hdr states = getRowHdr();
     Hdr::reverse_iterator it1;
     Hdr::iterator it2;
-    set<string> Si;
-    string i;
+    set<int> Si;
+    int i;
     for(it1 = states.rbegin(), it1++; it1 != states.rend(); it1++) {
-        i = it1->second;
+        i = it1->first;
         Si.clear();
         for(it2 = it1.base(); it2 != states.end(); it2++) {
             // form a set of states for c-list checking.
-            cp tmp = {it1->second,it2->second};
-            string state = *(C[tmp].begin()->begin());
-            if(state.compare("incompatible")) {
-                Si.insert(it2->second);
+            cp pair = {it1->first,it2->first};
+            int state = *(C[pair].begin()->begin());
+            if(state != PairState::INCOMPATIBLE) {
+                Si.insert(it2->first);
             }
         }
         if(M.empty()) {
-            set<string> tmp;
+            set<int> tmp;
             tmp.insert(i);
             for(auto& s : Si) {
                 tmp.insert(s);
@@ -400,8 +421,8 @@ cpset& hftable::class_set(const cp& p) {
             //print_pair(pair);
             for(auto& c : C[pair]) {
                 //print_pair(c);
-                string stemp = *(c.begin());
-                if(!stemp.compare("unconditional") || !stemp.compare("incompatible")) {
+                int stemp = *(c.begin());
+                if(stemp == PairState::UNCONDITIONAL || stemp == PairState::INCOMPATIBLE) {
                     continue;
                 }
                 if(!subset(p,c)) {
@@ -427,7 +448,7 @@ void hftable::solve_prime_bcp() {
     // scan each prime, for each possible state.
     for(auto& s : this->getRowHdr()) {
         for(auto& p : P) {
-            if(contains(s.second, p.second)) {
+            if(contains(s.first, p.second)) {
                 R[p.first] = '1';
             } else {
                 R[p.first] = '-';
@@ -460,9 +481,9 @@ void hftable::solve_prime_bcp() {
     btbl.bcp(bcp_results);
 }
 
-bool hftable::contains(string s, const cp& p) {
-    for(auto& str : p) {
-        if(!s.compare(str)) {
+bool hftable::contains(int state, const cp& state_pair) {
+    for(auto& _state : state_pair) {
+        if(state == _state) {
             return true;
         }
     }
@@ -471,15 +492,31 @@ bool hftable::contains(string s, const cp& p) {
 
 void hftable::reduce_table() {
     Table<hentry> reduced_data;
-    hftable reduced_table;
     Hdr new_rows;
     for(auto& rw : bcp_results) {
         new_rows.emplace(rw, to_string(rw));
         for(auto& cl : getColHdr()) {
-            //variable to store output
-            //variable to store next_state
-            //variable to temp store pair for determining next_state.
-            //cycle through each state of P[rw].
+            char output = '-';
+            cp next_state;
+            for(auto& old_row : P[rw]) {
+                char output_temp = getElement(old_row,cl.first).output;
+                if(output_temp != '-')
+                    output = output_temp;
+                int next_state_temp = getElement(old_row,cl.first).next_state;
+                if(next_state_temp != NextState::NOSTATE)
+                    next_state.emplace(next_state_temp);
+            }
+            for(auto& rw1 : bcp_results) {
+                if(subset(P[rw1],next_state)) {
+                    cell Cell = {rw,cl.first};
+                    hentry Hentry = {rw1,output};
+                    reduced_data.emplace(Cell,Hentry);
+                    break;
+                }
+            }
         }
     }
+    hftable reduced_table(reduced_data,new_rows,getColHdr(),"Reduced " + getTitle());
+    reduced_table.print_table();
+    print_reduced_key();
 }

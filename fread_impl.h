@@ -14,6 +14,8 @@
 #ifndef FREAD_IMPL_H
 #define FREAD_IMPL_H
 
+#include "typedefs.h"
+
 template <class T>
 FREAD<T>::FREAD(std::string fname) {
     std::string line, word;
@@ -43,7 +45,16 @@ FREAD<T>::FREAD(std::string fname) {
                     std::vector<std::string> temp;
                     while(std::getline(ss, token, ','))
                         temp.push_back(token);
-                    data[{i,j++}] = {temp[0],temp[1][0]};
+                    for(auto& state : states) {
+                        if(temp[0] == "-") {
+                            data[{i,j++}] = {NextState::NOSTATE,temp[1][0]};
+                            break;
+                        }
+                        if(state.second == temp[0]) {
+                            data[{i,j++}] = {state.first,temp[1][0]};
+                            break;
+                        }
+                    }
                 } while(iss >> word);
                 i++;
             }

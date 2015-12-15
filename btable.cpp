@@ -126,9 +126,9 @@ void btable::del_rows_col(col c, char val, btable& A) {
 }
 
 void btable::bcp(set<int> &results) {
-    print_table(INIT);
+    //print_table(INIT);
     Sol xp = bcp(*this,x,b);
-    print_x(xp,FINAL);
+    //print_x(xp,FINAL);
     for(auto& x : xp)
         if(x.second)
             results.emplace(x.first);
@@ -153,7 +153,6 @@ Sol& btable::bcp(const btable& A, const Sol& x, const Sol& b) {
     int c = choose_column(Ap);
     xp[c] = true;
     btable A1 = select_column(Ap,c);
-    print_A(A1,INTMED);
     Sol x1 = bcp(A1,xp,bp);
     if(cost(x1) < cost(bp)) {
         bp=x1;

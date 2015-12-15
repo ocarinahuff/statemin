@@ -27,6 +27,7 @@ public:
     void print_pair_chart();
     void print_max_comp();
     void print_prime_comp();
+    void print_reduced_key();
     
     void find_pairs();
     void reduce_pair_chart();
@@ -40,8 +41,8 @@ public:
     void reduce_table();
     
 private:
-    std::set<std::set<std::string> > M;
-    std::map<int,std::set<std::string> > P;
+    std::set<std::set<int> > M;
+    std::map<int,std::set<int> > P;
     std::map<cp,cpset> C;
     std::set<int> bcp_results;
     
@@ -52,7 +53,7 @@ private:
     bool contains_incompatible(const cpset& first, const cpset& second);
     
     //max comp helpers    
-    void check_intersectibles(std::string i, const mc& Si);
+    void check_intersectibles(int i, const mc& Si);
     bool subset(const mc& s1, const mc& s2);
     
     //prime comp helpers
@@ -61,7 +62,7 @@ private:
     bool subset(const cpset& s1, const cpset& s2);
     
     //bcp helpers
-    bool contains(std::string s, const cp& p);
+    bool contains(int s, const cp& p);
 };
 
 #endif /* HFTABLE_H */
