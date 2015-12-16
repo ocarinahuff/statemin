@@ -30,7 +30,7 @@ private:
     void remove_0_rows(btable& A);
 
     // primary bcp function
-    Sol& bcp(const btable& A, const Sol& x, const Sol& b);
+    void bcp(const btable& A, const Sol& x, const Sol& b, Sol& xp);
 
     // sub-algorithm: reduce
     void reduce(btable& A, Sol& x);
@@ -60,8 +60,8 @@ private:
 
     // functions for branching
     int choose_column(const btable &A);
-    btable& select_column(const btable &A, int c);
-    btable& remove_column(const btable &A, int c);
+    void select_column(const btable &A, int c, btable &A1);
+    void remove_column(const btable &A, int c, btable &A0);
 };
 
 #endif	/* BTABLE_H */
