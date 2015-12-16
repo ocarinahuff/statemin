@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     
     // create huffman table object, call reduce function.
     hftable test(data,states,inputs,title);
-    //test.print_table();
+    test.print_table();
     test.find_pairs();
     //test.print_pair_chart();
     test.reduce_pair_chart();

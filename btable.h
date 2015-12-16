@@ -27,6 +27,7 @@ private:
     
     // deletes rows/cols from A where col has value val
     void del_rows_col(col c, char val, btable& A);
+    void remove_0_rows(btable& A);
 
     // primary bcp function
     Sol& bcp(const btable& A, const Sol& x, const Sol& b);

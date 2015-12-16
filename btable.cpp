@@ -126,7 +126,7 @@ void btable::del_rows_col(col c, char val, btable& A) {
 }
 
 void btable::bcp(set<int> &results) {
-    //print_table(INIT);
+    print_table(INIT);
     Sol xp = bcp(*this,x,b);
     //print_x(xp,FINAL);
     for(auto& x : xp)
@@ -173,8 +173,15 @@ void btable::reduce(btable& A, Sol& x) {
     do {
         Ap = A;
         remove_essential_rows(A,x);
+        cout << "Essential rows removed:" << endl;
+        print_A(A,INTMED);
         remove_dominating_rows(A);
+        cout << "Dominating rows removed:" << endl;
+        print_A(A,INTMED);
         remove_dominated_columns(A,x);
+        cout << "Dominated columns removed:" << endl;
+        print_A(A,INTMED);
+        print_x(x,INTMED);
     } while(!A.isempty() && A.getData() != Ap.getData());
 }
 
@@ -231,6 +238,10 @@ void btable::remove_dominating_rows(btable& A) {
             row row1 = r1.first, row2 = r2.first;
             if(row1 == row2)
                 continue;
+            if(del.find(row1) != del.end() ||
+               del.find(row2) != del.end()) {
+                continue;
+            }
             if(check_row_dominance(row1,row2,A))
                 del.emplace(row2);
                 //A.delRow(row2);
@@ -378,35 +389,64 @@ int btable::row_count(const Row<char>& R) {
 int btable::choose_column(const btable &A) {
     double max = 0.0;
     int col = 0;
-    map<int,double> col_weights;
+    double sum;
+    btable Ap = A;
+    remove_0_rows(Ap);
+    //map<int,double> col_weights;
     map<int,double> row_weights;
     for(auto& r : A.getRowHdr()) {
-        row_weights[r.first] = 1.0 / (double)row_count(A.getRow(r.first));
+        double row_weight = 1.0 / (double)row_count(A.getRow(r.first));
+        cout << "r" << r.first << ": " << row_weight << endl;
+        row_weights[r.first] = row_weight;
     }
     for(auto& c : A.getColHdr()) {
-        double sum = 0.0;
+        sum = 0.0;
+        cout << "Sum of column " << c.first << " is" << endl;
         for(auto& cval : A.getCol(c.first)) {
             if(cval.second == '1') {
                 sum += row_weights[cval.first];
+                cout << sum << " after row " << cval.first << endl;
             }
         }
-        col_weights[c.first] = sum;
+        
+        //col_weights[c.first] = sum;
         if(sum > max) {
             max = sum;
             col = c.first;
         }
     }
+    cout << "Max weight was: " << max << endl;
+    cout << "Column chosen was: " << col << endl;
     return col;
 }
 
 btable& btable::select_column(const btable &A, int col) {
     static btable A1 = A;
     del_rows_col(col, '1', A1);
+    cout << "For col " << col << " = 1, table is:" << endl;
+    print_A(A1,INTMED);
     return A1;
 }
 
 btable& btable::remove_column(const btable &A, int col) {
     static btable A0 = A;
     del_rows_col(col, '0', A0);
+    cout << "For col " << col << " = 0, table is:" << endl;
+    print_A(A0,INTMED);
     return A0;
+}
+
+void btable::remove_0_rows(btable& A) {
+    set<row> del_set;
+    for(auto& _row : A.getRowHdr()) {
+        for(auto& _col : A.getColHdr()) {
+            if(A.getElement(_row.first,_col.first) == '0') {
+                del_set.emplace(_row.first);
+                break;
+            }
+        }
+    }
+    for(auto& del : del_set) {
+        A.delRow(del);
+    }
 }

@@ -29,19 +29,6 @@ namespace {
                 max = x.second.length();
         return max;
     }
-    // used for debugging.
-    void print_pair(cp pair) {
-        cout << *pair.begin();
-        if(pair.size() > 1)
-            cout << ',' << *pair.rbegin();
-        cout << endl;
-    }
-    void print_cp(cp c) {
-        for(auto& s : c)
-            cout << s;
-        cout << endl;
-    }
-    
     string to_string(int t) {
         string sout;
         stringstream ss;
@@ -50,6 +37,12 @@ namespace {
         return sout;
     }
 }
+
+void hftable::print_cp(const cp& c) {
+        for(auto& s : c)
+            cout << this->getRowHdr()[s];
+        cout << endl;
+    }
 
 void hftable::print_table() {
     cout << "Huffman flow table: " << getTitle() << endl;
@@ -100,7 +93,7 @@ void hftable::print_max_comp() {
     cout << "Max compatibles:" << endl;
     for(auto& m : M) {
         for(auto& s : m) {
-            cout << s;
+            cout << getRowHdr()[s];
         }
         cout << endl;
     }
@@ -110,13 +103,14 @@ void hftable::print_prime_comp() {
     cout << "Prime compatibles:" << endl;
     for(auto& p : P) {
         for(auto& s : p.second) {
-            cout << s;
+            cout << getRowHdr()[s];
         }
         cout << endl;
     }
 }
 
 void hftable::print_reduced_key() {
+    cout << "Reduced state key:" << endl;
     for(auto& key : bcp_results) {
         cout << key << " -> ";
         for(auto& p : P[key]) {
@@ -154,14 +148,6 @@ bool hftable::check_unc_comp(const Row<hentry>& row1, const Row<hentry>& row2, c
                 return false;
     }
     return true;
-}
-
-bool hftable::contains_incompatible(const cpset& first, const cpset& second) {
-    for(const auto& f : first)
-        for(const auto& s : second)
-            if(f == s)
-                return true;
-    return false;
 }
 
 void hftable::find_pairs() {
@@ -239,8 +225,8 @@ void hftable::reduce_pair_chart() {
     } while(recheck);
 }
 
-bool hftable::subset(const mc& s1, const mc& s2) {
-    mc done = s2;
+bool hftable::subset(const cp& s1, const cp& s2) {
+    cp done = s2;
     for(const auto& s : s1) {
         for(const auto& t : s2) {
             if(s == t) {
@@ -263,12 +249,14 @@ bool hftable::subset(const cpset& s1, const cpset& s2) {
     return done.empty();
 }
 
-void hftable::check_intersectibles(int i, const mc& Si) {
-    mc tmp, rem;
+void hftable::check_intersectibles(int i, const cp& Si) {
+    cp tmp, rem;
+    //print_cp(Si);
     bool found = false;
     for(auto& cl : M) {
         tmp.clear();
         tmp.insert(i);
+        rem = Si;
         for(auto& s : Si) {
             for(auto& c : cl) {
                 if(s == c) {
@@ -285,24 +273,27 @@ void hftable::check_intersectibles(int i, const mc& Si) {
             found = true;
         }
     }
+    // add remaining non-intersectibles.
+    if(!found)
+        for(auto& s : Si)
+            M.insert({i,s});
+    if(!rem.empty())
+        for(auto& r : rem)
+            M.insert({i,r});
     // remove subsets.
+    cpset del_set;
     for(auto& c1 : M) {
         for(auto& c2 : M) {
             if(c1 == c2)
                 continue;
             if(subset(c1,c2)) {
-                M.erase(c2);
-                break;
+                del_set.emplace(c2);
             }
         }
     }
-    // add remaining non-intersectibles.
-    if(!found)
-        for(auto& s : Si)
-            M.insert({i,s});
-    else if(!rem.empty())
-        for(auto& r : rem)
-            M.insert({i,r});
+    for(auto& del : del_set) {
+        M.erase(del);
+    }
 }
 
 void hftable::max_compatibles() {
@@ -317,20 +308,28 @@ void hftable::max_compatibles() {
         for(it2 = it1.base(); it2 != states.end(); it2++) {
             // form a set of states for c-list checking.
             cp pair = {it1->first,it2->first};
+            //print_cp(pair);
             int state = *(C[pair].begin()->begin());
             if(state != PairState::INCOMPATIBLE) {
                 Si.insert(it2->first);
             }
         }
-        if(M.empty()) {
-            set<int> tmp;
+//        cout << "S_" << getRowHdr()[i] << " = ";
+//        print_cp(Si);
+        if(Si.empty())
+            continue;
+        if(!Si.empty() && M.empty()) {
+            cp tmp;
             tmp.insert(i);
             for(auto& s : Si) {
                 tmp.insert(s);
             }
+            //print_cp(tmp);
             M.insert(tmp);
+            //print_max_comp();
         } else {
             check_intersectibles(i,Si);
+            //print_max_comp();
         }
     }
 }
@@ -436,7 +435,7 @@ cpset& hftable::class_set(const cp& p) {
 
 void hftable::solve_prime_bcp() {
     btable btbl;
-    Hdr rows, cols;
+    Hdr cols;
     Row<char> R;
     btbl.setTitle("Prime Compatible covering");
     row r = 1;
