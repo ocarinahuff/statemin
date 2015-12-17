@@ -46,13 +46,13 @@ int main(int argc, char** argv) {
     hftable test(data,states,inputs,title);
     test.print_table();
     test.find_pairs();
-    //test.print_pair_chart();
+    test.print_pair_chart();
     test.reduce_pair_chart();
-    //test.print_pair_chart();
+    test.print_pair_chart();
     test.max_compatibles();
-    //test.print_max_comp();
+    test.print_max_comp();
     test.prime_compatibles();
-    //test.print_prime_comp();
+    test.print_prime_comp();
     test.solve_prime_bcp();
     test.reduce_table();
     return 0;

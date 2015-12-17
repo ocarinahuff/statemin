@@ -16,6 +16,7 @@ public:
     btable();
     btable(Table<char> data, Hdr rows, Hdr cols, std::string title);
     void bcp(std::set<int>& results);
+    void bcp();
     void print_table(State s);
     void init_solutions();
 private:

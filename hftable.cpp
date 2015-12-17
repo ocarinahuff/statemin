@@ -36,6 +36,16 @@ namespace {
         ss >> sout;
         return sout;
     }
+    int max(Table<hentry> test) {
+        int max = 0;
+        for(auto& x : test) {
+            int slength = to_string(x.second.next_state).length();
+            int length = slength + 3;
+            if(length > max)
+                max = length;
+        }
+        return max;
+    }
 }
 
 void hftable::print_cp(const cp& c) {
@@ -47,22 +57,25 @@ void hftable::print_cp(const cp& c) {
 void hftable::print_table() {
     cout << "Huffman flow table: " << getTitle() << endl;
     // preprocessing, find max string length of states, inputs, entries.
-    int slen, ilen, elen;
+    int slen, ilen, dlen;
     slen = max(getRowHdr());
     ilen = max(getColHdr());
-    elen = slen + 2;
-    string s(slen+2,' ');
+    dlen = max(getData());
+    string s(slen,' ');
     cout << s;
-    string s1(elen-ilen+2,' ');
+    string s1(dlen-ilen,' ');
     for(auto& x : getColHdr())
-        cout << x.second << s1;
+        cout << s1 << x.second;
     cout << endl;
     // print current state, followed by row of possible next states.
     for(auto& x : getRowHdr()) {
-        cout << x.second << "  ";
+        string s2(slen-x.second.length(),' ');
+        cout << x.second << s2;
         for(auto& y : getColHdr()) {
             hentry e = getElement(x.first,y.first);
-            cout << (e.next_state == 0 ? "-" : getRowHdr()[e.next_state]) << ',' << e.output << "  ";
+            string next_state = (e.next_state == 0 ? "-" : getRowHdr()[e.next_state]) + ',' + e.output;
+            string s3(dlen-next_state.length(),' ');
+            cout << s3 << next_state;
         }
         cout << endl;
     }
