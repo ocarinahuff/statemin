@@ -35,7 +35,7 @@ private:
     // sub-algorithm: reduce
     void reduce(btable& A, Sol& x);
     // helper functions for reduce
-    bool find_essential_row(const btable& A, col& Col, char& val);
+    bool find_essential_row(const btable& A, Col<char>& es);
     void remove_essential_rows(btable& A, Sol& x);
     bool check_row_dominance(row r1, row r2, const btable& A);
     void remove_dominating_rows(btable& A);

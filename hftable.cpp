@@ -114,7 +114,7 @@ void hftable::print_reduced_key() {
     for(auto& key : bcp_results) {
         cout << key << " -> ";
         for(auto& p : P[key]) {
-            cout << p;
+            cout << getRowHdr()[p];
         }
         cout << endl;
     }
@@ -497,20 +497,29 @@ void hftable::reduce_table() {
         for(auto& cl : getColHdr()) {
             char output = '-';
             cp next_state;
+            next_state.emplace(NextState::NOSTATE);
             for(auto& old_row : P[rw]) {
                 char output_temp = getElement(old_row,cl.first).output;
                 if(output_temp != '-')
                     output = output_temp;
                 int next_state_temp = getElement(old_row,cl.first).next_state;
-                if(next_state_temp != NextState::NOSTATE)
+                if(next_state_temp != NextState::NOSTATE) {
+                    next_state.erase(NextState::NOSTATE);
                     next_state.emplace(next_state_temp);
+                }
             }
-            for(auto& rw1 : bcp_results) {
-                if(subset(P[rw1],next_state)) {
-                    cell Cell = {rw,cl.first};
-                    hentry Hentry = {rw1,output};
-                    reduced_data.emplace(Cell,Hentry);
-                    break;
+            cell Cell = {rw,cl.first};
+            if(next_state.find(NextState::NOSTATE) != next_state.end()) {
+                hentry Hentry = {NextState::NOSTATE,output};
+                reduced_data.emplace(Cell,Hentry);
+            }
+            else {
+                for(auto& rw1 : bcp_results) {
+                    if(subset(P[rw1],next_state)) {
+                        hentry Hentry = {rw1,output};
+                        reduced_data.emplace(Cell,Hentry);
+                        break;
+                    }
                 }
             }
         }

@@ -126,7 +126,7 @@ void btable::del_rows_col(col c, char val, btable& A) {
 }
 
 void btable::bcp(set<int> &results) {
-    print_table(INIT);
+    //print_table(INIT);
     Sol xp;
     bcp(*this,x,b,xp);
     //print_x(xp,FINAL);
@@ -159,8 +159,8 @@ void btable::bcp(const btable& A, const Sol& x, const Sol& b, Sol& xp) {
     select_column(Ap,c,A1);
     Sol x1;
     bcp(A1,xp,bp,x1);
-    if(c == 9)
-        cout << "stop" << endl;
+    //if(c == 0)
+    //    cout << "stop" << endl;
     if(cost(x1) < cost(bp)) {
         bp=x1;
         if(cost(bp) == L) {
@@ -184,26 +184,23 @@ void btable::reduce(btable& A, Sol& x) {
     do {
         Ap = A;
         remove_essential_rows(A,x);
-        cout << "Essential rows removed:" << endl;
-        print_A(A,INTMED);
-        print_x(x,INTMED);
+        //cout << "Essential rows removed:" << endl;
+        //print_A(A,INTMED);
+        //print_x(x,INTMED);
         remove_dominating_rows(A);
-        cout << "Dominating rows removed:" << endl;
-        print_A(A,INTMED);
+        //cout << "Dominating rows removed:" << endl;
+        //print_A(A,INTMED);
         remove_dominated_columns(A,x);
-        cout << "Dominated columns removed:" << endl;
-        print_A(A,INTMED);
-        print_x(x,INTMED);
+        //cout << "Dominated columns removed:" << endl;
+        //print_A(A,INTMED);
+        //print_x(x,INTMED);
     } while(!A.isempty() && A.getData() != Ap.getData());
 }
 
-bool btable::find_essential_row(const btable& A, col& Col, char& val) {
-    /*
-     * Rewrite this function to account for situations where there is
-     * more than one essential row with the same column.  In such case,
-     * the '0' takes precedence over '1'.  Consider returning a set
-     * of values
-     */
+bool btable::find_essential_row(const btable& A, Col<char>& es) {
+    es.clear();
+    col Col;
+    char val;
     if(A.isempty())
         return false;
     btable Ap = A;
@@ -219,18 +216,27 @@ bool btable::find_essential_row(const btable& A, col& Col, char& val) {
                 val = check_val;
             }
         }
-        if(count == 1)
-            return true;
+        if(count == 1) {
+            // check for rare instance in which two essential rows share
+            // a column, and one is '0', which takes precedence over the
+            // other.
+            if(es.find(Col) != es.end() && val == '0') {
+                es[Col] = val;
+            }
+            else {
+                es[Col] = val;
+            }
+        }
     }
-    return false;
+    return !es.empty();
 }
 
 void btable::remove_essential_rows(btable& A, Sol& x) {
-    col C;
-    char val;
-    while(find_essential_row(A, C, val)) {
-        x[C] = val == '1';
-        del_rows_col(C, val, A);
+    Col<char> es;
+    find_essential_row(A, es);
+    for(auto& er : es) {
+        x[er.first] = er.second == '1';
+        del_rows_col(er.first, er.second, A);
     }
 }
 
@@ -381,7 +387,7 @@ bool btable::terminal_case1(const btable& A) {
 bool btable::terminal_case2(const btable& A) {
     for(const auto& r : A.getRowHdr())
         if(row_all_dashes(A.getRow(r.first)))
-            return false;
+            return true;
     return false;
 }
 
@@ -435,23 +441,23 @@ int btable::choose_column(const btable &A) {
             col = c.first;
         }
     }
-    cout << "Max weight was: " << max << endl;
-    cout << "Column chosen was: " << col << endl;
+    //cout << "Max weight was: " << max << endl;
+    //cout << "Column chosen was: " << col << endl;
     return col;
 }
 
 void btable::select_column(const btable &A, int col, btable &A1) {
     A1 = A;
     del_rows_col(col, '1', A1);
-    cout << "For col " << col << " = 1, table is:" << endl;
-    print_A(A1,INTMED);
+    //cout << "For col " << col << " = 1, table is:" << endl;
+    //print_A(A1,INTMED);
 }
 
 void btable::remove_column(const btable &A, int col, btable &A0) {
     A0 = A;
     del_rows_col(col, '0', A0);
-    cout << "For col " << col << " = 0, table is:" << endl;
-    print_A(A0,INTMED);
+    //cout << "For col " << col << " = 0, table is:" << endl;
+    //print_A(A0,INTMED);
 }
 
 void btable::remove_0_rows(btable& A) {
