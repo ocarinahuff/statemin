@@ -29,32 +29,32 @@ public:
     void print_table();
     void reduce();
 private:
-    void reduce_table();
-    void print_reduced_key();
+    void reduce_table(std::map<int,cp>& P, cp& bcp_results);
+    void print_reduced_key(std::map<int,cp>& P, cp& bcp_results);
     
     //generate pairs
     void find_pairs(std::map<cp,cpset>& C);
     void reduce_pair_chart(std::map<cp,cpset>& C);
     // return true if two rows are output compatible. False otherwise.
-    bool check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2);
+    bool check_out_comp(const MSet<hentry>& row1, const MSet<hentry>& row2);
     // return true if two rows are unconditionally compatible. False otherwise.
-    bool check_unc_comp(const Row<hentry>& row1, const Row<hentry>& row2, const cp& current_state);
+    bool check_unc_comp(const MSet<hentry>& row1, const MSet<hentry>& row2, const cp& current_state);
     // determine the conditional compatibles for these two rows, add to pairs chart C.
-    void get_cond_pairs(const Row<hentry>& row1, const Row<hentry>& row2, const cp& current_state);
+    void get_cond_pairs(const MSet<hentry>& row1, const MSet<hentry>& row2, const cp& current_state);
     
     //max comp
     void max_compatibles(const std::map<cp,cpset>& C, cpset& M);
-    void check_intersectibles(int i, const cp& Si);
+    void check_intersectibles(int i, const cp& Si, cpset& M);
     bool subset(const cp& s1, const cp& s2);
     
     //prime comp
-    void prime_compatibles(const cpset& M, std::map<int,cp>& P);
-    cpset& class_set(const cp& p);
+    void prime_compatibles(const cpset& M, const std::map<cp,cpset>& C, std::map<int,cp>& P);
+    cpset& class_set(const cp& p, const std::map<cp,cpset>& C);
     cpset& max_subsets(const cp& p);
     bool subset(const cpset& s1, const cpset& s2);
     
     //bcp
-    void solve_prime_bcp();
+    void solve_prime_bcp(const std::map<int,cp>& P, const std::map<cp,cpset>& C, cp& bcp_results);
     bool contains(int s, const cp& p);
 };
 

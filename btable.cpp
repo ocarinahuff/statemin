@@ -195,7 +195,7 @@ void btable::reduce(btable& A, Sol& x) {
     } while(!A.isempty() && A.getData() != Ap.getData());
 }
 
-bool btable::find_essential_row(const btable& A, Col<char>& es) {
+bool btable::find_essential_row(const btable& A, MSet<char>& es) {
     es.clear();
     col Col;
     char val;
@@ -236,7 +236,7 @@ bool btable::find_essential_row(const btable& A, Col<char>& es) {
 }
 
 void btable::remove_essential_rows(btable& A, Sol& x) {
-    Col<char> es;
+    MSet<char> es;
     find_essential_row(A, es);
     for(auto& er : es) {
         x[er.first] = er.second == '1';
@@ -368,8 +368,8 @@ void btable::delete_intersect_rows(btable& A, const btable& MIS) {
         A.delRow(r);
 }
 
-bool btable::check_row_intersect(const Row<char>& R1, const Row<char>& R2) {
-    Row<char>::const_iterator itr1, itr2;
+bool btable::check_row_intersect(const MSet<char>& R1, const MSet<char>& R2) {
+    MSet<char>::const_iterator itr1, itr2;
     for(itr1 = R1.cbegin(), itr2 = R2.cbegin();
         itr1 != R1.cend() && itr2 != R2.cend();
         ++itr1,++itr2) {
@@ -391,7 +391,7 @@ bool btable::terminal_case2(const btable& A) {
     return false;
 }
 
-bool btable::row_all_dashes(const Row<char>& R) {
+bool btable::row_all_dashes(const MSet<char>& R) {
     for(auto& r : R)
         if(r.second != '-')
             return false;
@@ -407,7 +407,7 @@ int btable::cost(const Sol& sol) {
     return count;
 }
 
-int btable::row_count(const Row<char>& R) {
+int btable::row_count(const MSet<char>& R) {
     int count = 0;
     for(auto& r : R)
         if(r.second == '1')

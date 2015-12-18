@@ -29,20 +29,12 @@ namespace {
                 max = x.second.length();
         return max;
     }
-    string to_string(int t) {
-        string sout;
-        stringstream ss;
-        ss << t;
-        ss >> sout;
-        return sout;
-    }
     int max(Table<hentry> test) {
         int max = 0;
         for(auto& x : test) {
-            int slength = to_string(x.second.next_state).length();
-            int length = slength + 3;
-            if(length > max)
-                max = length;
+            int slength = to_string(x.second.next_state).length() + 3;
+            if(slength > max)
+                max = slength;
         }
         return max;
     }
@@ -75,7 +67,7 @@ void hftable::print_table() {
     }
 }
 
-void hftable::print_reduced_key() {
+void hftable::print_reduced_key(map<int,cp>& P, cp& bcp_results) {
     cout << "Reduced state key:" << endl;
     for(auto& key : bcp_results) {
         cout << key << " -> ";
@@ -86,8 +78,8 @@ void hftable::print_reduced_key() {
     }
 }
 
-bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
-    Row<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
+bool hftable::check_out_comp(const MSet<hentry>& row1, const MSet<hentry>& row2) {
+    MSet<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
     for(;it1 != row1.end() && it2 != row2.end();it1++,it2++) {
         char out1 = it1->second.output;
         char out2 = it2->second.output;
@@ -99,8 +91,8 @@ bool hftable::check_out_comp(const Row<hentry>& row1, const Row<hentry>& row2) {
     return true;
 }
 
-bool hftable::check_unc_comp(const Row<hentry>& row1, const Row<hentry>& row2, const cp& current_state) {
-    Row<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
+bool hftable::check_unc_comp(const MSet<hentry>& row1, const MSet<hentry>& row2, const cp& current_state) {
+    MSet<hentry>::const_iterator it1 = row1.begin(), it2 = row2.begin();
     for(;it1 != row1.end() && it2 != row2.end();it1++,it2++) {
         int nstate1 = it1->second.next_state;
         int nstate2 = it2->second.next_state;
@@ -121,8 +113,8 @@ void hftable::find_pairs(map<cp,cpset>& C) {
     Hdr::iterator it1, it2;
     cpset state_set;
     cp state_pair, current_state, next_state;
-    Row<hentry> row1, row2;
-    Row<hentry>::iterator itr1, itr2;
+    MSet<hentry> row1, row2;
+    MSet<hentry>::iterator itr1, itr2;
     for(it1 = rows.begin(); it1 != --(rows.end()); ++it1) {
         it2 = it1;
         for(++it2; it2 != rows.end(); ++it2) {
@@ -215,9 +207,8 @@ bool hftable::subset(const cpset& s1, const cpset& s2) {
     return done.empty();
 }
 
-void hftable::check_intersectibles(int i, const cp& Si) {
+void hftable::check_intersectibles(int i, const cp& Si, cpset& M) {
     cp tmp, rem;
-    //print_cp(Si);
     bool found = false;
     for(auto& cl : M) {
         tmp.clear();
@@ -274,14 +265,11 @@ void hftable::max_compatibles(const map<cp,cpset>& C, cpset& M) {
         for(it2 = it1.base(); it2 != states.end(); it2++) {
             // form a set of states for c-list checking.
             cp pair = {it1->first,it2->first};
-            //print_cp(pair);
-            int state = *(C[pair].begin()->begin());
+            int state = *(C.at(pair).begin()->begin());
             if(state != PairState::INCOMPATIBLE) {
                 Si.insert(it2->first);
             }
         }
-//        cout << "S_" << getRowHdr()[i] << " = ";
-//        print_cp(Si);
         if(Si.empty())
             continue;
         if(!Si.empty() && M.empty()) {
@@ -290,17 +278,14 @@ void hftable::max_compatibles(const map<cp,cpset>& C, cpset& M) {
             for(auto& s : Si) {
                 tmp.insert(s);
             }
-            //print_cp(tmp);
             M.insert(tmp);
-            //print_max_comp();
         } else {
-            check_intersectibles(i,Si);
-            //print_max_comp();
+            check_intersectibles(i,Si,M);
         }
     }
 }
 
-void hftable::prime_compatibles(const cpset& M, map<int,cp>& P) {
+void hftable::prime_compatibles(const cpset& M, const map<cp,cpset>& C, map<int,cp>& P) {
     cpset done;
     bool prime = false;
     int index = 1;
@@ -318,21 +303,19 @@ void hftable::prime_compatibles(const cpset& M, map<int,cp>& P) {
                 cpset cs;
                 cs.clear();
                 //check if class set is empty.
-                //print_cp(p);
-                if(class_set(p.second).empty())
+                if(class_set(p.second, C).empty())
                     continue;
                 for(auto& s : max_subsets(p.second)) {
-                    //print_cp(s);
                     if(done.find(s) != done.end()) {
                         continue;
                     }
-                    cs = class_set(s);
+                    cs = class_set(s, C);
                     prime = true;
                     map<int,cp>::iterator it1;
                     for(it1 = P.begin(); it1 != P.end(); ++it1) {
                         if(it1->second.size() >= k) {
                             if(subset(it1->second,s)) {
-                                cpset cq = class_set(it1->second);
+                                cpset cq = class_set(it1->second, C);
                                 if(subset(cs,cq)) {
                                     prime = false;
                                     break;
@@ -371,7 +354,7 @@ cpset& hftable::max_subsets(const cp& p) {
     return ms;
 }
 
-cpset& hftable::class_set(const cp& p) {
+cpset& hftable::class_set(const cp& p, const map<cp,cpset>& C) {
     // create pairs from p.
     static cpset cs;
     cs.clear();
@@ -383,9 +366,7 @@ cpset& hftable::class_set(const cp& p) {
             cp pair;
             pair.emplace(*it1);
             pair.emplace(*it2);
-            //print_pair(pair);
-            for(auto& c : C[pair]) {
-                //print_pair(c);
+            for(auto& c : C.at(pair)) {
                 int stemp = *(c.begin());
                 if(stemp == PairState::UNCONDITIONAL || stemp == PairState::INCOMPATIBLE) {
                     continue;
@@ -399,14 +380,14 @@ cpset& hftable::class_set(const cp& p) {
     return cs;
 }
 
-void hftable::solve_prime_bcp(cp& bcp_results) {
+void hftable::solve_prime_bcp(const map<int,cp>& P, const map<cp,cpset>& C, cp& bcp_results) {
     btable btbl;
     Hdr cols;
     MSet<char> R;
     btbl.setTitle("Prime Compatible covering");
     row r = 1;
     for(col c = 1; c <= P.size(); ++c) {
-        cols[c] = "c" + to_string(c);
+        cols[c] = "c" + std::to_string(c);
     }
     btbl.setColHdr(cols);
     btbl.init_solutions();
@@ -426,7 +407,7 @@ void hftable::solve_prime_bcp(cp& bcp_results) {
     bool found;
     for(auto& p1 : P) {
         R[p1.first] = '0';
-        for(auto& cs : class_set(p1.second)) {
+        for(auto& cs : class_set(p1.second,C)) {
             found = false;
             for(auto& p2 : P) {
                 if(subset(p2.second,cs)) {
@@ -438,7 +419,7 @@ void hftable::solve_prime_bcp(cp& bcp_results) {
                 }
             }
             if(found) {
-                btbl.addRow(R, r, "r" + to_string(r));
+                btbl.addRow(R, r, "r" + std::to_string(r));
                 ++r;
             }
         }
@@ -455,7 +436,7 @@ bool hftable::contains(int state, const cp& state_pair) {
     return false;
 }
 
-void hftable::reduce_table() {
+void hftable::reduce_table(map<int,cp>& P, cp& bcp_results) {
     Table<hentry> reduced_data;
     Hdr new_rows;
     for(auto& rw : bcp_results) {
@@ -492,19 +473,18 @@ void hftable::reduce_table() {
     }
     hftable reduced_table(reduced_data,new_rows,getColHdr(),"Reduced " + getTitle());
     reduced_table.print_table();
-    print_reduced_key();
+    print_reduced_key(P,bcp_results);
 }
 
 void hftable::reduce() {
     map<cp,cpset> C;
-    find_pairs(C);
-    reduce_pairs(C);
     cpset M;
-    max_compatibles(C,M);
     map<int,cp> P;
-    prime_compatibles(M,P);
     cp bcp_results;
-    solve_prime_bcp(bcp_results);
-    // make reduced table
-    // print reduced table and key
+    find_pairs(C);
+    reduce_pair_chart(C);
+    max_compatibles(C,M);
+    prime_compatibles(M,C,P);
+    solve_prime_bcp(P,C,bcp_results);
+    reduce_table(P,bcp_results);
 }

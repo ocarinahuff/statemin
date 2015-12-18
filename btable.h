@@ -36,7 +36,7 @@ private:
     // sub-algorithm: reduce
     void reduce(btable& A, Sol& x);
     // helper functions for reduce
-    bool find_essential_row(const btable& A, Col<char>& es);
+    bool find_essential_row(const btable& A, MSet<char>& es);
     void remove_essential_rows(btable& A, Sol& x);
     bool check_row_dominance(row r1, row r2, const btable& A);
     void remove_dominating_rows(btable& A);
@@ -45,19 +45,19 @@ private:
 
 //    // general helper functions.
     int cost(const Sol &sol);
-    int row_count(const Row<char> &R);
+    int row_count(const MSet<char> &R);
 
     // sub-algorithm: lower_bound
     int lower_bound(const btable &A, const Sol &x);
     // helper functions for lower_bound
     void shortest_row(btable &A, btable &MIS);
     void delete_intersect_rows(btable &A, const btable &MIS);
-    bool check_row_intersect(const Row<char> &R1, const Row<char> &R2);
+    bool check_row_intersect(const MSet<char> &R1, const MSet<char> &R2);
 
     // functions for terminal case
     bool terminal_case1(const btable& A);
     bool terminal_case2(const btable& A);
-    bool row_all_dashes(const Row<char> &R);
+    bool row_all_dashes(const MSet<char> &R);
 
     // functions for branching
     int choose_column(const btable &A);

@@ -43,18 +43,9 @@ int main(int argc, char** argv) {
     title = title.substr(0,title.length()-4);
     
     // create huffman table object, call reduce function.
-    hftable test(data,states,inputs,title);
-    test.print_table();
-    test.find_pairs();
-    //test.print_pair_chart();
-    test.reduce_pair_chart();
-    //test.print_pair_chart();
-    test.max_compatibles();
-    //test.print_max_comp();
-    test.prime_compatibles();
-    //test.print_prime_comp();
-    test.solve_prime_bcp();
-    test.reduce_table();
+    hftable htbl(data,states,inputs,title);
+    htbl.print_table();
+    htbl.reduce();
     return 0;
 }
 
