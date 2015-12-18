@@ -23,15 +23,14 @@ public:
     table(Table<T> data, Hdr rows, Hdr cols, std::string title);
     virtual ~table();
     
-    Row<T> getRow(row r) const;
-    //Row<T> getRow(row r);
-    void setRow(Row<T> R, row r);
-    void addRow(Row<T> R, row r, std::string name);
+    MSet<T> getRow(row r) const;
+    void setRow(MSet<T> R, row r);
+    void addRow(MSet<T> R, row r, std::string name);
     void delRow(row r);
     
-    Col<T> getCol(col c) const;
-    void setCol(Col<T> C, col c);
-    void addCol(Col<T> C, col c, std::string name);
+    MSet<T> getCol(col c) const;
+    void setCol(MSet<T> C, col c);
+    void addCol(MSet<T> C, col c, std::string name);
     void delCol(col c);
     
     T getElement(row r, col c) const;

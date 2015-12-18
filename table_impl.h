@@ -60,8 +60,8 @@ void table<T>::setTitle(std::string title) {
 }
 
 template <class T>
-Row<T> table<T>::getRow(row r) const {
-   Row<T> ROW;
+MSet<T> table<T>::getRow(row r) const {
+   MSet<T> ROW;
    for(auto& c : cols) {
        try {
            ROW.emplace(c.first,data.at({r,c.first}));
@@ -75,8 +75,8 @@ Row<T> table<T>::getRow(row r) const {
 }
 
 template <class T>
-Col<T> table<T>::getCol(col c) const {
-   Col<T> COL;
+MSet<T> table<T>::getCol(col c) const {
+   MSet<T> COL;
    for(auto& r : rows) {
        try {
            COL.emplace(r.first,data.at({r.first,c}));
@@ -135,7 +135,7 @@ void table<T>::delCol(col c) {
 }
 
 template <class T>
-void table<T>::setRow(Row<T> R, row r) {
+void table<T>::setRow(MSet<T> R, row r) {
    if(rows.find(r) == rows.end())
        return;
    for(auto& c : cols)
@@ -143,7 +143,7 @@ void table<T>::setRow(Row<T> R, row r) {
 }
 
 template <class T>
-void table<T>::setCol(Col<T> C, col c) {
+void table<T>::setCol(MSet<T> C, col c) {
    if(cols.find(c) == cols.end())
        return;
    for(auto& r : rows)
@@ -159,7 +159,7 @@ void table<T>::setElement(T e, row r, col c) {
 }
 
 template <class T>
-void table<T>::addRow(Row<T> R, row r, std::string name) {
+void table<T>::addRow(MSet<T> R, row r, std::string name) {
    if(rows.find(r) != rows.end())
        return;
    for(auto& c : cols)
@@ -168,7 +168,7 @@ void table<T>::addRow(Row<T> R, row r, std::string name) {
 }
 
 template <class T>
-void table<T>::addCol(Col<T> C, col c, std::string name) {
+void table<T>::addCol(MSet<T> C, col c, std::string name) {
    if(cols.find(c) != cols.end())
        return;
    for(auto& r : rows)

@@ -48,12 +48,6 @@ namespace {
     }
 }
 
-void hftable::print_cp(const cp& c) {
-        for(auto& s : c)
-            cout << this->getRowHdr()[s];
-        cout << endl;
-    }
-
 void hftable::print_table() {
     cout << "Huffman flow table: " << getTitle() << endl;
     // preprocessing, find max string length of states, inputs, entries.
@@ -76,47 +70,6 @@ void hftable::print_table() {
             string next_state = (e.next_state == 0 ? "-" : getRowHdr()[e.next_state]) + ',' + e.output;
             string s3(dlen-next_state.length(),' ');
             cout << s3 << next_state;
-        }
-        cout << endl;
-    }
-}
-
-void hftable::print_pair_chart() {
-    cout << "Pairs chart" << endl;
-    for(auto& c : C) {
-        cout << *(c.first.begin()) << ',' << *(c.first.rbegin()) << ": ";
-        for(auto& cps : c.second) {
-            int first = *(cps.begin()), second = *(cps.rbegin());
-            if(first == PairState::INCOMPATIBLE) {
-                cout << "Incompatible";
-                break;
-            }
-            else if(first == PairState::UNCONDITIONAL) {
-                cout << "Unconditional";
-                break;
-            }
-            else
-                cout << getRowHdr()[first] << ',' << getRowHdr()[second] << ' ';
-        }
-        cout << endl;
-    }
-}
-
-void hftable::print_max_comp() {
-    cout << "Max compatibles:" << endl;
-    for(auto& m : M) {
-        for(auto& s : m) {
-            cout << getRowHdr()[s];
-        }
-        cout << endl;
-    }
-}
-
-void hftable::print_prime_comp() {
-    cout << "Prime compatibles:" << endl;
-    for(auto& p : P) {
-        for(auto& s : p.second) {
-            cout << getRowHdr()[s];
         }
         cout << endl;
     }
@@ -163,7 +116,7 @@ bool hftable::check_unc_comp(const Row<hentry>& row1, const Row<hentry>& row2, c
     return true;
 }
 
-void hftable::find_pairs() {
+void hftable::find_pairs(map<cp,cpset>& C) {
     Hdr rows = getRowHdr();
     Hdr::iterator it1, it2;
     cpset state_set;
@@ -209,7 +162,7 @@ void hftable::find_pairs() {
     }
 }
 
-void hftable::reduce_pair_chart() {
+void hftable::reduce_pair_chart(map<cp,cpset>& C) {
     bool recheck;
     int state;
     cpset state_inc, mark_inc;
@@ -309,7 +262,7 @@ void hftable::check_intersectibles(int i, const cp& Si) {
     }
 }
 
-void hftable::max_compatibles() {
+void hftable::max_compatibles(const map<cp,cpset>& C, cpset& M) {
     Hdr states = getRowHdr();
     Hdr::reverse_iterator it1;
     Hdr::iterator it2;
@@ -347,7 +300,7 @@ void hftable::max_compatibles() {
     }
 }
 
-void hftable::prime_compatibles() {
+void hftable::prime_compatibles(const cpset& M, map<int,cp>& P) {
     cpset done;
     bool prime = false;
     int index = 1;
@@ -446,10 +399,10 @@ cpset& hftable::class_set(const cp& p) {
     return cs;
 }
 
-void hftable::solve_prime_bcp() {
+void hftable::solve_prime_bcp(cp& bcp_results) {
     btable btbl;
     Hdr cols;
-    Row<char> R;
+    MSet<char> R;
     btbl.setTitle("Prime Compatible covering");
     row r = 1;
     for(col c = 1; c <= P.size(); ++c) {
@@ -540,4 +493,18 @@ void hftable::reduce_table() {
     hftable reduced_table(reduced_data,new_rows,getColHdr(),"Reduced " + getTitle());
     reduced_table.print_table();
     print_reduced_key();
+}
+
+void hftable::reduce() {
+    map<cp,cpset> C;
+    find_pairs(C);
+    reduce_pairs(C);
+    cpset M;
+    max_compatibles(C,M);
+    map<int,cp> P;
+    prime_compatibles(M,P);
+    cp bcp_results;
+    solve_prime_bcp(bcp_results);
+    // make reduced table
+    // print reduced table and key
 }

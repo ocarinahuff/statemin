@@ -69,25 +69,21 @@ typedef struct CELL {
  * internal ids used for rows and columns.  It is used by the 
  * printer functions to output to std::cout.
  */ 
-typedef std::map<int,std::string> Hdr;
+using Hdr = std::map<int,std::string>;
 
 // this is a template that maps each cell to a data of type class T.
 template <class T>
 using Table = std::map<cell,T>;
+
+
 /**
- * This is a template that maps each column number to a data element
+ * This is a template that maps a set of int to a set of data elements
  * of type class T.
- * It is used to contain a Row subset of Table<T>.
+ * It is used to contain a linear subset of Table<T>, such as a Row or
+ * Column.
  */
 template <class T>
-using Row = std::map<col,T>;
-/**
- * This is a template that maps each row number to a data element 
- * of type class T.
- * It is used to contain a Column subset of Table<T>.
- */
-template <class T>
-using Col = std::map<row,T>;
+using MSet = std::map<int,T>;
 
 /**
  * This is used by the bcp table to contain the computed solution.
@@ -95,7 +91,7 @@ using Col = std::map<row,T>;
  * boolean value is true if it is part of the solution, and false 
  * otherwise.
  */
-typedef std::map<col,bool> Sol;
+using Sol = std::map<col,bool>;
 
 /**
  * cp is a set of one or more states, it is officially called compatible pair,
@@ -107,8 +103,8 @@ typedef std::map<col,bool> Sol;
  * It also does not allow duplicates, this property was intentionally chosen
  * for this program.
  */
-typedef std::set<int> cp;
-typedef std::set<cp> cpset;
+using cp = std::set<int>;
+using cpset = std::set<cp>;
 
 /**
  * Used by printer functions during debug.  It denotes
