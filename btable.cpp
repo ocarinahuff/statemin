@@ -127,17 +127,17 @@ void btable::del_rows_col(col c, char val, btable& A) {
 }
 
 void btable::bcp() {
-    print_table(INIT);
+    //print_table(INIT);
     Sol xp;
     bcp(*this,x,b,xp);
-    print_x(xp,FINAL);
+    //print_x(xp,FINAL);
 }
 
 void btable::bcp(set<int> &results) {
-    print_table(INIT);
+    //print_table(INIT);
     Sol xp;
     bcp(*this,x,b,xp);
-    print_x(xp,FINAL);
+    //print_x(xp,FINAL);
     for(auto& x : xp)
         if(x.second)
             results.emplace(x.first);
@@ -190,16 +190,8 @@ void btable::reduce(btable& A, Sol& x) {
     do {
         Ap = A;
         remove_essential_rows(A,x);
-        cout << "Essential rows removed:" << endl;
-        print_A(A,INTMED);
-        print_x(x,INTMED);
         remove_dominating_rows(A);
-        cout << "Dominating rows removed:" << endl;
-        print_A(A,INTMED);
         remove_dominated_columns(A,x);
-        cout << "Dominated columns removed:" << endl;
-        print_A(A,INTMED);
-        print_x(x,INTMED);
     } while(!A.isempty() && A.getData() != Ap.getData());
 }
 
@@ -223,9 +215,15 @@ bool btable::find_essential_row(const btable& A, Col<char>& es) {
             }
         }
         if(count == 1) {
-            // check for rare instance in which two essential rows share
-            // a column, and one is '0', which takes precedence over the
-            // other.
+            /**
+             * check for rare instance in which two essential rows share 
+             * a column, and one is '0', which conflicts with the other.
+             * What this means is that column cannot be part of the solution.
+             * This if statement will ensure that if the '1' row is found
+             * before the '0', the '0' row will overwrite as it should.  On
+             * the flip side, if '0' is found before '1', this will prevent
+             * '1' from overwriting.
+             */
             if(es.find(Col) != es.end() && val == '0') {
                 es[Col] = val;
             }
@@ -249,7 +247,6 @@ void btable::remove_essential_rows(btable& A, Sol& x) {
 bool btable::check_row_dominance(row r1, row r2, const btable& A) {
     if(r1 == r2 || A.isempty())
         return false;
-    //btable Ap = A;
     for(auto& c : A.getColHdr()) {
         col C = c.first;
         char val1 = A.getElement(r1,C);
@@ -275,7 +272,6 @@ void btable::remove_dominating_rows(btable& A) {
             }
             if(check_row_dominance(row1,row2,A))
                 del.emplace(row2);
-                //A.delRow(row2);
         }
     }
     for(auto& r : del)
@@ -285,7 +281,6 @@ void btable::remove_dominating_rows(btable& A) {
 bool btable::check_column_dominance(col c1, col c2, const btable& A) {
     if(c1 == c2 || A.isempty())
         return false;
-    //btable Ap = A;
     for(const auto& r : A.getRowHdr()) {
         row R = r.first;
         char val1 = A.getElement(R,c1);
@@ -366,7 +361,6 @@ void btable::delete_intersect_rows(btable& A, const btable& MIS) {
         for(auto& ra : A.getRowHdr()) {
             row r1 = rm.first, r2 = ra.first;
             if(check_row_intersect(MIS.getRow(r1), A.getRow(r2)))
-                //A.delRow(r2);
                 del.emplace(r2);
         }
     }
@@ -427,7 +421,6 @@ int btable::choose_column(const btable &A) {
     double sum;
     btable Ap = A;
     remove_0_rows(Ap);
-    //map<int,double> col_weights;
     map<int,double> row_weights;
     for(auto& r : Ap.getRowHdr()) {
         double row_weight = 1.0 / (double)row_count(Ap.getRow(r.first));
@@ -440,30 +433,22 @@ int btable::choose_column(const btable &A) {
                 sum += row_weights[cval.first];
             }
         }
-        
-        //col_weights[c.first] = sum;
         if(sum > max) {
             max = sum;
             col = c.first;
         }
     }
-    cout << "Max weight was: " << max << endl;
-    cout << "Column chosen was: " << col << endl;
     return col;
 }
 
 void btable::select_column(const btable &A, int col, btable &A1) {
     A1 = A;
     del_rows_col(col, '1', A1);
-    cout << "For col " << col << " = 1, table is:" << endl;
-    print_A(A1,INTMED);
 }
 
 void btable::remove_column(const btable &A, int col, btable &A0) {
     A0 = A;
     del_rows_col(col, '0', A0);
-    cout << "For col " << col << " = 0, table is:" << endl;
-    print_A(A0,INTMED);
 }
 
 void btable::remove_0_rows(btable& A) {

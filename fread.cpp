@@ -5,19 +5,18 @@
  */
 
 /* 
- * File:   fread_impl.h
+ * File:   fread.cpp
  * Author: ocarinahuff
  *
  * Created on November 15, 2015, 4:44 AM
  */
 
-#ifndef FREAD_IMPL_H
-#define FREAD_IMPL_H
+#include "fread.h"
+#include <fstream>
+#include <sstream>
+#include <vector>
 
-#include "typedefs.h"
-
-template <class T>
-FREAD<T>::FREAD(std::string fname) {
+FREAD::FREAD(std::string fname) {
     std::string line, word;
     std::ifstream myfile(fname.c_str());
     if(myfile.is_open()) {
@@ -62,21 +61,3 @@ FREAD<T>::FREAD(std::string fname) {
         myfile.close();
     }
 }
-
-template <class T>
-Table<T> FREAD<T>::get_data() {
-    return data;
-}
-
-template <class T>
-Hdr FREAD<T>::get_states() {
-    return states;
-}
-
-template <class T>
-Hdr FREAD<T>::get_inputs() {
-    return inputs;
-}
-
-#endif /* FREAD_IMPL_H */
-

@@ -14,14 +14,9 @@
 #ifndef FREAD_H
 #define FREAD_H
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
-#include <vector>
 #include "typedefs.h"
 
-template <class T>
 class FREAD {
 /**
  * Reads a text file formatted as follows:
@@ -44,15 +39,13 @@ class FREAD {
  **/
  public:
     FREAD(std::string fname);
-    Table<T> get_data();
-    Hdr get_states();
-    Hdr get_inputs();
+    Table<hentry> get_data() {return data;}
+    Hdr get_states() {return states;}
+    Hdr get_inputs() {return inputs;}
  private:
     Hdr states;
     Hdr inputs;
-    Table<T> data;
+    Table<hentry> data;
 };
-
-#include "fread_impl.h"
 
 #endif /* FREAD_H */
