@@ -29,7 +29,10 @@ int main(int argc, char** argv) {
         return -1;
     }
     if(argc == 2 && argv[1] == "/h") {
-        
+        cout << "The section is a work in progress." << endl;
+        cout << "Type statemin filename.txt to run the program." << endl;
+        cout << "filename.txt is any input file you specify." << endl;
+        cout << "Please see example text files for proper format." << endl;
         return 0;
     }
     // read text file.
